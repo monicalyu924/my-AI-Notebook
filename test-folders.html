@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件夹功能测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        pre {
+            background: #f1f3f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗂️ 文件夹功能测试</h1>
+        <p>此页面用于测试新添加的文件夹功能API</p>
+
+        <div class="test-section">
+            <h3>📊 连接状态</h3>
+            <button class="button" onclick="checkConnection()">检查后端连接</button>
+            <div id="connection-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔐 认证测试</h3>
+            <div>
+                <input type="email" id="email" placeholder="邮箱" value="test@example.com">
+                <input type="password" id="password" placeholder="密码" value="password123">
+                <button class="button" onclick="testLogin()">登录</button>
+            </div>
+            <div id="auth-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📁 文件夹API测试</h3>
+            <button class="button" onclick="testGetFolders()">获取文件夹列表</button>
+            <button class="button" onclick="testGetFoldersTree()">获取文件夹树</button>
+            <button class="button" onclick="testCreateFolder()">创建测试文件夹</button>
+            <div id="folder-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 笔记与文件夹测试</h3>
+            <button class="button" onclick="testGetNotes()">获取所有笔记</button>
+            <button class="button" onclick="testGetUncategorizedNotes()">获取未分类笔记</button>
+            <div id="notes-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 测试日志</h3>
+            <div id="test-log"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+        let authToken = localStorage.getItem('access_token');
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('test-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `status ${type}`;
+            logEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateStatus(elementId, message, isSuccess) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${isSuccess ? 'success' : 'error'}`;
+            element.innerHTML = message;
+        }
+
+        async function checkConnection() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                
+                if (data.status === 'healthy') {
+                    updateStatus('connection-status', '✅ 后端连接正常', true);
+                    log('后端健康检查通过', 'success');
+                } else {
+                    updateStatus('connection-status', '❌ 后端状态异常', false);
+                    log('后端状态异常', 'error');
+                }
+            } catch (error) {
+                updateStatus('connection-status', '❌ 无法连接后端', false);
+                log(`连接错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.access_token;
+                    localStorage.setItem('access_token', authToken);
+                    updateStatus('auth-status', '✅ 登录成功', true);
+                    log('用户认证成功', 'success');
+                } else {
+                    const errorData = await response.json();
+                    updateStatus('auth-status', `❌ 登录失败: ${errorData.detail}`, false);
+                    log(`登录失败: ${errorData.detail}`, 'error');
+                }
+            } catch (error) {
+                updateStatus('auth-status', `❌ 登录错误: ${error.message}`, false);
+                log(`登录错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function makeAuthenticatedRequest(url, options = {}) {
+            if (!authToken) {
+                throw new Error('需要先登录');
+            }
+            
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                }
+            };
+            
+            const mergedOptions = {
+                ...defaultOptions,
+                ...options,
+                headers: {
+                    ...defaultOptions.headers,
+                    ...options.headers
+                }
+            };
+            
+            const response = await fetch(url, mergedOptions);
+            
+            if (response.status === 401) {
+                authToken = null;
+                localStorage.removeItem('access_token');
+                throw new Error('认证已过期，请重新登录');
+            }
+            
+            return response;
+        }
+
+        async function testGetFolders() {
+            try {
+                const response = await makeAuthenticatedRequest(`${API_BASE_URL}/folders/`);
+                
+                if (response.ok) {
+                    const folders = await response.json();
+                    updateStatus('folder-status', `✅ 获取文件夹成功 (${folders.length}个)`, true);
+                    log(`获取到 ${folders.length} 个文件夹`, 'success');
+                    
+                    if (folders.length > 0) {
+                        log(`<pre>${JSON.stringify(folders, null, 2)}</pre>`, 'info');
+                    }
+                } else {
+                    const errorData = await response.json();
+                    updateStatus('folder-status', `❌ 获取文件夹失败: ${errorData.detail}`, false);
+                    log(`获取文件夹失败: ${errorData.detail}`, 'error');
+                }
+            } catch (error) {
+                updateStatus('folder-status', `❌ 请求错误: ${error.message}`, false);
+                log(`文件夹请求错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGetFoldersTree() {
+            try {
+                const response = await makeAuthenticatedRequest(`${API_BASE_URL}/folders/tree`);
+                
+                if (response.ok) {
+                    const tree = await response.json();
+                    log(`✅ 获取文件夹树成功`, 'success');
+                    log(`<pre>${JSON.stringify(tree, null, 2)}</pre>`, 'info');
+                } else {
+                    const errorData = await response.json();
+                    log(`❌ 获取文件夹树失败: ${errorData.detail}`, 'error');
+                }
+            } catch (error) {
+                log(`文件夹树请求错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCreateFolder() {
+            try {
+                const folderName = `测试文件夹_${Date.now()}`;
+                const response = await makeAuthenticatedRequest(`${API_BASE_URL}/folders/`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name: folderName,
+                        parent_id: null
+                    })
+                });
+                
+                if (response.ok) {
+                    const folder = await response.json();
+                    log(`✅ 创建文件夹成功: ${folder.name}`, 'success');
+                    log(`<pre>${JSON.stringify(folder, null, 2)}</pre>`, 'info');
+                } else {
+                    const errorData = await response.json();
+                    log(`❌ 创建文件夹失败: ${errorData.detail}`, 'error');
+                }
+            } catch (error) {
+                log(`创建文件夹错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGetNotes() {
+            try {
+                const response = await makeAuthenticatedRequest(`${API_BASE_URL}/notes/`);
+                
+                if (response.ok) {
+                    const notes = await response.json();
+                    updateStatus('notes-status', `✅ 获取所有笔记成功 (${notes.length}个)`, true);
+                    log(`获取到 ${notes.length} 个笔记`, 'success');
+                    
+                    if (notes.length > 0) {
+                        const notesWithFolders = notes.filter(note => note.folder_id);
+                        const notesWithoutFolders = notes.filter(note => !note.folder_id);
+                        log(`其中 ${notesWithFolders.length} 个在文件夹中，${notesWithoutFolders.length} 个未分类`, 'info');
+                    }
+                } else {
+                    const errorData = await response.json();
+                    updateStatus('notes-status', `❌ 获取笔记失败: ${errorData.detail}`, false);
+                    log(`获取笔记失败: ${errorData.detail}`, 'error');
+                }
+            } catch (error) {
+                updateStatus('notes-status', `❌ 请求错误: ${error.message}`, false);
+                log(`笔记请求错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGetUncategorizedNotes() {
+            try {
+                const response = await makeAuthenticatedRequest(`${API_BASE_URL}/notes/?folder_id=null`);
+                
+                if (response.ok) {
+                    const notes = await response.json();
+                    log(`✅ 获取未分类笔记成功 (${notes.length}个)`, 'success');
+                } else {
+                    const errorData = await response.json();
+                    log(`❌ 获取未分类笔记失败: ${errorData.detail}`, 'error');
+                }
+            } catch (error) {
+                log(`未分类笔记请求错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载时自动检查连接
+        window.onload = function() {
+            checkConnection();
+            if (authToken) {
+                updateStatus('auth-status', '✅ 检测到已保存的登录状态', true);
+            }
+        };
+    </script>
+</body>
+</html>

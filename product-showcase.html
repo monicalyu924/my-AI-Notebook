@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 AI 智能记事本 - 产品展示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* 渐变背景 */
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 英雄区域 */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            position: relative;
+            padding: 2rem;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(1px);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+
+        .hero .description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease 0.4s both;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s ease 0.6s both;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: transparent;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        /* 动画 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* 功能区域 */
+        .features {
+            padding: 5rem 2rem;
+            background: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 4rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-bottom: 5rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #f0f0f0;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .feature-description {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .feature-list li {
+            padding: 0.3rem 0;
+            color: #555;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        /* 技术栈区域 */
+        .tech-stack {
+            padding: 5rem 2rem;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .tech-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .tech-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tech-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .tech-description {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* 截图展示区域 */
+        .screenshots {
+            padding: 5rem 2rem;
+            background: white;
+        }
+
+        .screenshot-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .screenshot-card {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .screenshot-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+
+        .screenshot {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .screenshot-info {
+            padding: 1.5rem;
+            background: white;
+        }
+
+        .screenshot-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .screenshot-description {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        /* CTA区域 */
+        .cta {
+            padding: 5rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            text-align: center;
+            color: white;
+        }
+
+        .cta h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .cta p {
+            font-size: 1.2rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero .subtitle {
+                font-size: 1.2rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tech-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+
+            .screenshot-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 浮动动画元素 */
+        .floating-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .floating-element {
+            position: absolute;
+            font-size: 2rem;
+            color: rgba(255, 255, 255, 0.1);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-element:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
+        .floating-element:nth-child(2) { top: 60%; left: 80%; animation-delay: 2s; }
+        .floating-element:nth-child(3) { top: 80%; left: 20%; animation-delay: 4s; }
+        .floating-element:nth-child(4) { top: 40%; left: 70%; animation-delay: 1s; }
+        .floating-element:nth-child(5) { top: 10%; left: 60%; animation-delay: 3s; }
+
+        /* 滚动指示器 */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 2rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            40% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+            60% {
+                transform: translateX(-50%) translateY(-5px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 英雄区域 -->
+    <section class="hero gradient-bg">
+        <div class="floating-elements">
+            <div class="floating-element">🤖</div>
+            <div class="floating-element">📝</div>
+            <div class="floating-element">📁</div>
+            <div class="floating-element">☁️</div>
+            <div class="floating-element">✨</div>
+        </div>
+        
+        <div class="hero-content">
+            <h1>🚀 AI 智能记事本</h1>
+            <p class="subtitle">重新定义数字化笔记体验</p>
+            <p class="description">
+                融合人工智能、富文本编辑、智能文件管理和实时同步的现代化云端笔记应用
+                <br>让AI成为您的智能写作伙伴，让笔记管理变得简单高效
+            </p>
+            <div class="cta-buttons">
+                <a href="http://localhost:5174" class="btn btn-primary">
+                    🎯 立即体验
+                </a>
+                <a href="demo-folder-features.html" class="btn btn-secondary">
+                    🎮 功能演示
+                </a>
+            </div>
+        </div>
+        
+        <div class="scroll-indicator">⬇️</div>
+    </section>
+
+    <!-- 核心功能 -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">✨ 核心功能</h2>
+            <p class="section-subtitle">四大核心功能，全面提升您的笔记体验</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <div class="feature-title">AI 智能助手</div>
+                    <div class="feature-description">
+                        强大的AI驱动写作助手，提供内容续写、文本润色、多语言翻译、智能总结和上下文问答等功能。
+                    </div>
+                    <ul class="feature-list">
+                        <li>📝 智能内容续写和扩展</li>
+                        <li>✨ 自动文本润色和优化</li>
+                        <li>🌐 多语言精准翻译</li>
+                        <li>📊 长文内容智能总结</li>
+                        <li>❓ 基于上下文的问答</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📁</div>
+                    <div class="feature-title">智能文件管理</div>
+                    <div class="feature-description">
+                        专业级文件夹管理系统，支持无限层级嵌套、直观拖拽操作和智能分类筛选。
+                    </div>
+                    <ul class="feature-list">
+                        <li>🌳 无限层级文件夹结构</li>
+                        <li>🎯 直观的拖拽移动操作</li>
+                        <li>🔍 多维度智能筛选</li>
+                        <li>📋 未分类笔记自动管理</li>
+                        <li>⚡ 实时状态同步更新</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">✍️</div>
+                    <div class="feature-title">富文本编辑器</div>
+                    <div class="feature-description">
+                        Word风格的所见即所得编辑器，支持丰富的格式、颜色工具和实时预览功能。
+                    </div>
+                    <ul class="feature-list">
+                        <li>📝 所见即所得编辑体验</li>
+                        <li>🎨 丰富的格式和样式</li>
+                        <li>🌈 文字颜色和背景设置</li>
+                        <li>🔗 链接和图片插入</li>
+                        <li>⚡ 编辑与预览模式切换</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📋</div>
+                    <div class="feature-title">待办事项管理</div>
+                    <div class="feature-description">
+                        完整的任务管理系统，支持优先级设置、截止日期、分类标签和团队协作功能。
+                    </div>
+                    <ul class="feature-list">
+                        <li>✅ 任务创建和编辑</li>
+                        <li>🎯 优先级和分类管理</li>
+                        <li>📅 截止日期和提醒</li>
+                        <li>👥 任务分配和协作</li>
+                        <li>📊 完成状态统计分析</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 技术栈 -->
+    <section class="tech-stack">
+        <div class="container">
+            <h2 class="section-title">🛠️ 技术架构</h2>
+            <p class="section-subtitle">基于现代化技术栈，确保性能、安全与可扩展性</p>
+            
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <div class="tech-icon">⚛️</div>
+                    <div class="tech-name">React 19</div>
+                    <div class="tech-description">现代化UI框架</div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon">🎨</div>
+                    <div class="tech-name">Tailwind CSS</div>
+                    <div class="tech-description">原子化样式系统</div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon">⚡</div>
+                    <div class="tech-name">FastAPI</div>
+                    <div class="tech-description">高性能Web框架</div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon">🗄️</div>
+                    <div class="tech-name">Supabase</div>
+                    <div class="tech-description">云数据库服务</div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon">🤖</div>
+                    <div class="tech-name">OpenRouter API</div>
+                    <div class="tech-description">AI服务集成</div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon">🔐</div>
+                    <div class="tech-name">JWT + Bcrypt</div>
+                    <div class="tech-description">安全认证机制</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 功能截图 -->
+    <section class="screenshots">
+        <div class="container">
+            <h2 class="section-title">📱 功能展示</h2>
+            <p class="section-subtitle">直观了解产品界面和核心功能</p>
+            
+            <div class="screenshot-container">
+                <div class="screenshot-card">
+                    <div class="screenshot">🗂️ 文件夹管理界面</div>
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">智能文件夹系统</div>
+                        <div class="screenshot-description">
+                            层级文件夹结构，支持拖拽移动，提供直观的笔记分类和管理体验。
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card">
+                    <div class="screenshot">✍️ 富文本编辑器</div>
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">专业编辑体验</div>
+                        <div class="screenshot-description">
+                            Word风格的所见即所得编辑器，丰富的格式工具和实时预览功能。
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card">
+                    <div class="screenshot">🤖 AI 智能助手</div>
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">AI写作助手</div>
+                        <div class="screenshot-description">
+                            强大的AI功能集成，提供内容续写、润色、翻译和总结等智能服务。
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card">
+                    <div class="screenshot">📋 待办事项管理</div>
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">任务管理系统</div>
+                        <div class="screenshot-description">
+                            完整的待办事项功能，支持优先级、分类、截止日期和团队协作。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 行动号召 -->
+    <section class="cta">
+        <div class="container">
+            <h2>🚀 开始您的智能笔记之旅</h2>
+            <p>立即体验AI驱动的现代化笔记应用，让创作变得更加高效和智能</p>
+            <div class="cta-buttons">
+                <a href="http://localhost:5174" class="btn btn-primary">
+                    🎯 立即使用
+                </a>
+                <a href="test-folders.html" class="btn btn-secondary">
+                    🧪 功能测试
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // 滚动时的视差效果
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelector('.hero');
+            const speed = scrolled * 0.5;
+            parallax.style.transform = `translateY(${speed}px)`;
+        });
+
+        // 功能卡片的交互效果
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // 滚动时的元素动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // 为所有功能卡片添加动画观察
+        document.querySelectorAll('.feature-card, .tech-card, .screenshot-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'all 0.6s ease';
+            observer.observe(card);
+        });
+
+        // 添加页面加载完成后的欢迎动画
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
+        });
+
+        document.body.style.opacity = '0';
+        document.body.style.transition = 'opacity 0.5s ease';
+    </script>
+</body>
+</html>

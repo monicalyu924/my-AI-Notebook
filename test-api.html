@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .form-group { margin: 15px 0; }
+        input { padding: 10px; margin: 5px 0; width: 300px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .result { margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+    </style>
+</head>
+<body>
+    <h1>AI智能记事本 API测试</h1>
+    
+    <div class="form-group">
+        <h3>注册测试</h3>
+        <input type="email" id="email" placeholder="邮箱" value="test@example.com">
+        <input type="password" id="password" placeholder="密码" value="password123">
+        <input type="text" id="fullName" placeholder="姓名" value="测试用户">
+        <button onclick="testRegister()">测试注册</button>
+    </div>
+    
+    <div class="form-group">
+        <h3>登录测试</h3>
+        <input type="email" id="loginEmail" placeholder="邮箱" value="test@example.com">
+        <input type="password" id="loginPassword" placeholder="密码" value="password123">
+        <button onclick="testLogin()">测试登录</button>
+    </div>
+    
+    <div id="result" class="result" style="display: none;"></div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+        
+        function showResult(message, isError = false) {
+            const result = document.getElementById('result');
+            result.textContent = message;
+            result.className = `result ${isError ? 'error' : 'success'}`;
+            result.style.display = 'block';
+        }
+        
+        async function testRegister() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const fullName = document.getElementById('fullName').value;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                        full_name: fullName
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(`注册成功！Token: ${data.access_token.substring(0, 50)}...`);
+                } else {
+                    showResult(`注册失败: ${data.detail}`, true);
+                }
+            } catch (error) {
+                showResult(`网络错误: ${error.message}`, true);
+            }
+        }
+        
+        async function testLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(`登录成功！Token: ${data.access_token.substring(0, 50)}...`);
+                } else {
+                    showResult(`登录失败: ${data.detail}`, true);
+                }
+            } catch (error) {
+                showResult(`网络错误: ${error.message}`, true);
+            }
+        }
+        
+        // 页面加载时测试连接
+        window.onload = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                console.log('API健康检查:', data);
+            } catch (error) {
+                console.error('无法连接到API:', error);
+                showResult('无法连接到后端API服务', true);
+            }
+        };
+    </script>
+</body>
+</html>

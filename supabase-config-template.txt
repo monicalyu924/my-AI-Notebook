@@ -1,0 +1,15 @@
+# Supabase配置信息模板
+# 请从Supabase项目的Settings > API页面复制以下信息：
+
+# 1. Project URL (在Configuration部分)
+SUPABASE_URL=https://your-project-id.supabase.co
+
+# 2. API Keys部分：
+# anon public key (用于客户端)
+SUPABASE_ANON_KEY=your_anon_public_key_here
+
+# service_role key (用于服务端，点击眼睛图标显示)
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+
+# 3. 为JWT生成一个随机密钥
+SECRET_KEY=your_random_secret_key_here_make_it_long_and_secure

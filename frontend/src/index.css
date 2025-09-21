@@ -1,0 +1,316 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+@import "./styles/trello-theme.css";
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  html {
+    height: 100%;
+  }
+  
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    /* Trello 风格渐变背景 */
+    background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 50%, #C4B5FD 100%);
+    background-attachment: fixed;
+    color: #1F2937;
+  }
+  
+  /* 确保根元素也有渐变背景 */
+  #root {
+    min-height: 100vh;
+    background: transparent;
+  }
+  
+  /* 键盘导航焦点指示器 */
+  *:focus-visible {
+    outline: 2px solid #3B82F6;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  
+  /* 移除默认焦点样式，使用自定义样式 */
+  *:focus {
+    outline: none;
+  }
+  
+  /* 跳转到主内容的链接（可访问性） */
+  .skip-to-content {
+    position: absolute;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1F2937;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    z-index: 9999;
+    transition: top 0.3s;
+  }
+  
+  .skip-to-content:focus {
+    top: 16px;
+  }
+}
+
+@layer components {
+  /* Trello 风格主要按钮 */
+  .btn-primary {
+    @apply bg-white text-purple-600 font-medium px-4 py-2 rounded-xl shadow-lg hover:shadow-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-500 transition-all duration-200;
+  }
+  
+  /* 移动端友好的按钮 */
+  .btn-primary-mobile {
+    @apply bg-white text-purple-600 font-medium px-6 py-4 rounded-xl shadow-lg hover:shadow-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-500 transition-all duration-200 min-h-[44px];
+  }
+  
+  /* Trello 风格次要按钮 */
+  .btn-secondary {
+    @apply bg-white/20 backdrop-blur-sm text-white border border-white/30 px-4 py-2 rounded-xl hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-500 transition-all duration-200;
+  }
+  
+  /* 移动端友好的次要按钮 */
+  .btn-secondary-mobile {
+    @apply bg-white/20 backdrop-blur-sm text-white border border-white/30 px-6 py-4 rounded-xl hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-500 transition-all duration-200 min-h-[44px];
+  }
+  
+  /* Trello 风格输入框 */
+  .input-field {
+    @apply w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-300 transition-all duration-200 shadow-sm;
+  }
+  
+  /* 移动端友好的输入框 */
+  .input-field-mobile {
+    @apply w-full px-4 py-4 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-300 transition-all duration-200 shadow-sm text-base min-h-[44px];
+  }
+  
+  /* Trello 风格侧边栏项目 */
+  .sidebar-item {
+    @apply flex items-center px-3 py-2 text-gray-700 hover:bg-white/80 rounded-xl cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 backdrop-blur-sm;
+  }
+  
+  /* 移动端友好的侧边栏项目 */
+  .sidebar-item-mobile {
+    @apply flex items-center px-4 py-4 text-gray-700 hover:bg-white/80 rounded-xl cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 backdrop-blur-sm min-h-[44px];
+  }
+  
+  /* Trello 风格笔记项目 */
+  .note-item {
+    @apply p-4 bg-white rounded-xl shadow-lg hover:shadow-xl cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 border-0;
+  }
+  
+  /* Trello 风格卡片样式 */
+  .card {
+    @apply bg-white rounded-xl shadow-lg border-0 hover:shadow-xl transition-all duration-200;
+  }
+  
+  .card-compact {
+    @apply bg-white rounded-lg shadow-lg border-0 hover:shadow-xl transition-all duration-200;
+  }
+  
+  /* Trello 风格渐变按钮 */
+  .btn-gradient {
+    @apply bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-500 transition-all duration-200 shadow-lg hover:shadow-xl;
+  }
+  
+  /* Trello 风格状态指示器 */
+  .status-dot {
+    @apply w-2 h-2 rounded-full flex-shrink-0;
+  }
+  
+  /* Trello 风格侧边栏 */
+  .trello-sidebar {
+    @apply bg-white/90 backdrop-blur-md shadow-xl border-0;
+  }
+  
+  /* Trello 风格列表容器 */
+  .trello-list {
+    @apply bg-gray-100 rounded-xl shadow-lg border-0;
+  }
+  
+  /* Trello 风格卡片列表项 */
+  .trello-card {
+    @apply bg-white rounded-lg shadow-lg hover:shadow-xl border-0 transition-all duration-200;
+  }
+  
+  /* Trello 风格模态框 */
+  .trello-modal {
+    @apply bg-white rounded-2xl shadow-2xl border-0;
+  }
+  
+  /* Trello 风格下拉菜单 */
+  .trello-dropdown {
+    @apply bg-white rounded-xl shadow-xl border-0;
+  }
+  
+  /* Trello 风格通知 */
+  .trello-notification {
+    @apply bg-white rounded-xl shadow-lg border-0;
+  }
+  
+  /* 自定义滚动条以匹配 Trello 风格 */
+  .trello-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .trello-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+  
+  .trello-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.3);
+    border-radius: 4px;
+  }
+  
+  .trello-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 246, 0.5);
+  }
+  
+  /* 响应式文本截断 */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}
+
+/* 滑动优化样式 */
+@layer utilities {
+  /* 确保触摸设备有平滑滚动 */
+  .touch-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+  
+  /* 防止水平溢出 */
+  .prevent-x-overflow {
+    overflow-x: hidden;
+  }
+  
+  /* 垂直滑动优化 */
+  .vertical-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  
+  /* 双向滑动 */
+  .both-scroll {
+    overflow: auto;
+  }
+  
+  /* 移动端滑动优化 */
+  @media (max-width: 767px) {
+    body {
+      overflow-x: hidden;
+    }
+    
+    .mobile-scroll-container {
+      -webkit-overflow-scrolling: touch;
+      overflow-scrolling: touch;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+    
+    /* 移动端触摸优化 */
+    .mobile-touch-target {
+      min-height: 44px;
+      min-width: 44px;
+      padding: 12px;
+    }
+    
+    /* 移动端输入框优化 */
+    .mobile-input {
+      font-size: 16px; /* 防止移动端浏览器缩放 */
+      padding: 12px 16px;
+      min-height: 44px;
+    }
+    
+    /* 移动端拖拽优化 */
+    .mobile-drag-handle {
+      touch-action: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    
+    /* 移动端模态框优化 */
+    .mobile-modal {
+      margin: 8px;
+      max-height: calc(100vh - 16px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* 移动端导航优化 */
+    .mobile-nav-item {
+      padding: 16px;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+    }
+    
+    /* 漂亮的浮动动画 */
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+    
+    @keyframes glow {
+      0%, 100% {
+        box-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+      }
+    }
+    
+    @keyframes aurora-pulse {
+      0%, 100% {
+        opacity: 0.8;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+    
+    .float-animation {
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .glow-effect {
+      animation: glow 4s ease-in-out infinite;
+    }
+    
+    .aurora-pulse {
+      animation: aurora-pulse 8s ease-in-out infinite;
+    }
+  }
+}

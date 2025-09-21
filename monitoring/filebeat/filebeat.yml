@@ -1,0 +1,67 @@
+# Filebeat配置文件
+filebeat.inputs:
+  # 应用日志
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/app/backend/*.log
+    fields:
+      service: ai-notebook-backend
+      environment: production
+    fields_under_root: true
+    multiline.pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+    multiline.negate: true
+    multiline.match: after
+
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/app/nginx/*.log
+    fields:
+      service: ai-notebook-nginx
+      environment: production
+    fields_under_root: true
+
+  # 系统日志
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/syslog
+      - /var/log/auth.log
+    fields:
+      service: system
+      environment: production
+    fields_under_root: true
+
+  # Docker容器日志
+  - type: container
+    paths:
+      - '/var/lib/docker/containers/*/*.log'
+    processors:
+      - add_docker_metadata:
+          host: "unix:///var/run/docker.sock"
+
+# 输出配置
+output.logstash:
+  hosts: ["logstash:5044"]
+
+# Elasticsearch输出（备用）
+# output.elasticsearch:
+#   hosts: ["elasticsearch:9200"]
+#   index: "filebeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+
+# 日志级别
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
+
+# 处理器
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~

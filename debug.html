@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI记事本 - 调试工具</title>
+    <style>
+        body { font-family: 'SF Pro Display', -apple-system, sans-serif; padding: 20px; background: #f7f6f3; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .section { margin-bottom: 30px; padding: 20px; border: 1px solid #e5e5e5; border-radius: 8px; }
+        .btn { padding: 10px 20px; margin: 5px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
+        .btn-primary { background: #007AFF; color: white; }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .result { background: #f8f9fa; padding: 15px; margin-top: 10px; border-radius: 6px; font-family: monospace; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+        .success { border-left: 4px solid #28a745; background: #d4edda; }
+        .error { border-left: 4px solid #dc3545; background: #f8d7da; }
+        input { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        h2 { color: #333; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 AI记事本调试工具</h1>
+        
+        <div class="section">
+            <h2>1. 登录测试</h2>
+            <input type="email" id="email" placeholder="邮箱地址" value="test@example.com">
+            <input type="password" id="password" placeholder="密码" value="password123">
+            <button class="btn btn-primary" onclick="testLogin()">测试登录</button>
+            <div id="loginResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h2>2. 笔记列表测试</h2>
+            <p>Token: <span id="currentToken">未登录</span></p>
+            <button class="btn btn-primary" onclick="testNotes()">获取笔记列表</button>
+            <div id="notesResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h2>3. 创建笔记测试</h2>
+            <input type="text" id="noteTitle" placeholder="笔记标题" value="测试笔记">
+            <textarea id="noteContent" placeholder="笔记内容" rows="3" style="width:100%; padding:8px;">这是一个测试笔记的内容。</textarea>
+            <button class="btn btn-primary" onclick="testCreateNote()">创建笔记</button>
+            <div id="createResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h2>4. 服务状态检查</h2>
+            <button class="btn btn-secondary" onclick="checkServices()">检查服务状态</button>
+            <div id="serviceResult" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let currentToken = localStorage.getItem('token');
+        
+        if (currentToken) {
+            document.getElementById('currentToken').textContent = currentToken.substring(0, 20) + '...';
+        }
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(API_BASE + url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(currentToken && { 'Authorization': `Bearer ${currentToken}` }),
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                const data = await response.json();
+                return { status: response.status, data, ok: response.ok };
+            } catch (error) {
+                return { error: error.message };
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('loginResult');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '登录中...';
+            resultDiv.className = 'result';
+            
+            const result = await makeRequest('/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ email, password })
+            });
+            
+            if (result.ok && result.data.access_token) {
+                currentToken = result.data.access_token;
+                localStorage.setItem('token', currentToken);
+                document.getElementById('currentToken').textContent = currentToken.substring(0, 20) + '...';
+                resultDiv.className = 'result success';
+                resultDiv.textContent = '✅ 登录成功!\n' + JSON.stringify(result.data, null, 2);
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ 登录失败:\n' + JSON.stringify(result, null, 2);
+            }
+        }
+
+        async function testNotes() {
+            const resultDiv = document.getElementById('notesResult');
+            
+            if (!currentToken) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ 请先登录获取Token';
+                return;
+            }
+            
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '获取笔记列表中...';
+            resultDiv.className = 'result';
+            
+            const result = await makeRequest('/notes/');
+            
+            if (result.ok) {
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ 获取成功! 共${result.data.length}篇笔记:\n` + JSON.stringify(result.data, null, 2);
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ 获取失败:\n' + JSON.stringify(result, null, 2);
+            }
+        }
+
+        async function testCreateNote() {
+            const resultDiv = document.getElementById('createResult');
+            const title = document.getElementById('noteTitle').value;
+            const content = document.getElementById('noteContent').value;
+            
+            if (!currentToken) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ 请先登录获取Token';
+                return;
+            }
+            
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '创建笔记中...';
+            resultDiv.className = 'result';
+            
+            const result = await makeRequest('/notes/', {
+                method: 'POST',
+                body: JSON.stringify({ title, content, tags: ['调试', '测试'] })
+            });
+            
+            if (result.ok) {
+                resultDiv.className = 'result success';
+                resultDiv.textContent = '✅ 创建成功!\n' + JSON.stringify(result.data, null, 2);
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ 创建失败:\n' + JSON.stringify(result, null, 2);
+            }
+        }
+
+        async function checkServices() {
+            const resultDiv = document.getElementById('serviceResult');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '检查服务状态中...';
+            resultDiv.className = 'result';
+            
+            const checks = [
+                { name: '后端API', url: '/' },
+                { name: '健康检查', url: '/health' },
+                { name: 'API文档', url: '/docs' }
+            ];
+            
+            let results = '服务状态检查结果:\n\n';
+            
+            for (const check of checks) {
+                try {
+                    const response = await fetch(API_BASE + check.url);
+                    results += `✅ ${check.name}: ${response.status} ${response.statusText}\n`;
+                } catch (error) {
+                    results += `❌ ${check.name}: ${error.message}\n`;
+                }
+            }
+            
+            resultDiv.className = 'result';
+            resultDiv.textContent = results;
+        }
+    </script>
+</body>
+</html>

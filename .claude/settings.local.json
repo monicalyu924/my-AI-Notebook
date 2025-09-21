@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sqlite3:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(python:*)",
+      "Bash(lsof:*)",
+      "Bash(ps:*)",
+      "Bash(grep:*)",
+      "Bash(npm install:*)",
+      "Bash(curl:*)",
+      "Bash(pip install:*)",
+      "Bash(cat:*)",
+      "Bash(VITE_API_BASE_URL=http://localhost:8000 npm run dev)",
+      "WebFetch(domain:trello.com)",
+      "Bash(npx playwright:*)",
+      "Bash(node:*)",
+      "Bash(echo:*)",
+      "Bash(source:*)",
+      "Bash(uvicorn:*)",
+      "Bash(npm:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(timeout 10 npm run dev)",
+      "Read(//Users/monica/Documents/ai practise/记事本 9.1/backend/**)",
+      "Read(//Users/monica/Documents/ai practise/**)",
+      "Bash(kill:*)",
+      "Read(//Users/monica/Documents/**)",
+      "Bash(cd:*)",
+      "Bash(docker-compose:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "outputStyle": "Explanatory"
+}

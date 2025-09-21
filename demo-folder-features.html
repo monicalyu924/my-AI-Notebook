@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📁 文件夹功能演示</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .hero {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 4px solid #007bff;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card h3 {
+            color: #007bff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            font-size: 1.3rem;
+        }
+        
+        .feature-card .icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        
+        .demo-section {
+            background: #f1f3f4;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 2px dashed #dee2e6;
+        }
+        
+        .demo-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #e9ecef;
+            cursor: grab;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .demo-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+        
+        .demo-item.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+            cursor: grabbing;
+        }
+        
+        .drop-zone {
+            background: #e3f2fd;
+            border: 2px dashed #2196f3;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px;
+            text-align: center;
+            color: #1976d2;
+            transition: all 0.2s;
+        }
+        
+        .drop-zone.drag-over {
+            background: #c8e6c9;
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+        
+        .steps {
+            counter-reset: step-counter;
+        }
+        
+        .step {
+            counter-increment: step-counter;
+            margin: 20px 0;
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .step::before {
+            content: "步骤 " counter(step-counter) ": ";
+            font-weight: bold;
+            color: #856404;
+        }
+        
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-ready { background: #4caf50; }
+        .status-pending { background: #ff9800; }
+        .status-error { background: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🗂️ 文件夹功能演示</h1>
+        <p>体验全新的笔记管理方式 - 拖拽、整理、高效协作</p>
+    </div>
+
+    <div class="container">
+        <h2>🎯 核心功能概览</h2>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3><span class="icon">📁</span>层级文件夹</h3>
+                <p>创建多层嵌套的文件夹结构，就像您的电脑文件系统一样直观。支持无限层级，轻松组织大量笔记。</p>
+                <ul>
+                    <li>✅ 创建文件夹和子文件夹</li>
+                    <li>✅ 展开/收起文件夹树</li>
+                    <li>✅ 重命名和删除操作</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3><span class="icon">🎯</span>拖拽移动</h3>
+                <p>直观的拖拽操作，将笔记轻松移动到任何文件夹。鼠标悬停显示拖拽手柄，绿色高亮指示放置目标。</p>
+                <ul>
+                    <li>✅ 鼠标拖拽笔记到文件夹</li>
+                    <li>✅ 视觉反馈和状态提示</li>
+                    <li>✅ 智能防重复移动</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3><span class="icon">🔍</span>智能筛选</h3>
+                <p>按文件夹查看笔记，支持"所有笔记"和"未分类"视图。在特定文件夹中创建新笔记，自动分类管理。</p>
+                <ul>
+                    <li>✅ 按文件夹筛选笔记</li>
+                    <li>✅ 未分类笔记视图</li>
+                    <li>✅ 上下文感知创建</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3><span class="icon">⚡</span>实时同步</h3>
+                <p>所有操作实时同步到云端，支持多设备访问。文件夹结构和笔记位置自动保存，永不丢失。</p>
+                <ul>
+                    <li>✅ 云端实时同步</li>
+                    <li>✅ 多设备访问一致</li>
+                    <li>✅ 自动保存变更</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🎮 互动演示</h2>
+        <p>尝试拖拽下方的演示笔记到不同的文件夹中！</p>
+        
+        <div class="demo-section">
+            <h4>📝 演示笔记 (可拖拽)</h4>
+            <div class="demo-item" draggable="true" data-note="meeting">
+                <strong>📋 周例会记录</strong>
+                <p>本周工作总结和下周计划安排...</p>
+                <small>🏷️ 标签: 工作, 会议</small>
+            </div>
+            
+            <div class="demo-item" draggable="true" data-note="idea">
+                <strong>💡 产品创意想法</strong>
+                <p>关于新功能的创意和用户需求分析...</p>
+                <small>🏷️ 标签: 创意, 产品</small>
+            </div>
+            
+            <div class="demo-item" draggable="true" data-note="study">
+                <strong>📚 学习笔记</strong>
+                <p>今天学习的新技术要点和心得体会...</p>
+                <small>🏷️ 标签: 学习, 技术</small>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div class="drop-zone" data-folder="work">
+                <strong>📁 工作文件夹</strong>
+                <p>拖拽工作相关笔记到这里</p>
+                <div id="work-notes"></div>
+            </div>
+            
+            <div class="drop-zone" data-folder="personal">
+                <strong>📁 个人文件夹</strong>
+                <p>拖拽个人笔记到这里</p>
+                <div id="personal-notes"></div>
+            </div>
+            
+            <div class="drop-zone" data-folder="uncategorized">
+                <strong>📋 未分类</strong>
+                <p>拖拽到这里取消分类</p>
+                <div id="uncategorized-notes"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🚀 快速开始</h2>
+        
+        <div class="steps">
+            <div class="step">
+                <strong>更新数据库</strong>
+                <p>在 Supabase 控制台执行 SQL 脚本，添加文件夹表和字段。参考 <span class="highlight">FOLDER_UPDATE_GUIDE.md</span></p>
+            </div>
+            
+            <div class="step">
+                <strong>重启服务</strong>
+                <p>重启后端服务以加载新的 API 路由，刷新前端页面应用最新代码。</p>
+            </div>
+            
+            <div class="step">
+                <strong>创建文件夹</strong>
+                <p>在侧边栏点击 "+" 按钮创建第一个文件夹，开始整理您的笔记。</p>
+            </div>
+            
+            <div class="step">
+                <strong>体验拖拽</strong>
+                <p>将鼠标悬停在笔记上显示拖拽手柄，拖拽到文件夹即可移动。</p>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="http://localhost:5174" class="button">🚀 打开应用</a>
+            <a href="test-folders.html" class="button">🧪 API 测试</a>
+            <button class="button" onclick="window.location.reload()">🔄 刷新演示</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📊 功能状态</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div>
+                <h4>✅ 已完成功能</h4>
+                <ul style="list-style: none; padding: 0;">
+                    <li><span class="status-indicator status-ready"></span>文件夹 CRUD API</li>
+                    <li><span class="status-indicator status-ready"></span>文件夹树形 UI</li>
+                    <li><span class="status-indicator status-ready"></span>笔记拖拽移动</li>
+                    <li><span class="status-indicator status-ready"></span>按文件夹筛选</li>
+                    <li><span class="status-indicator status-ready"></span>实时状态更新</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4>🔄 计划中功能</h4>
+                <ul style="list-style: none; padding: 0;">
+                    <li><span class="status-indicator status-pending"></span>批量移动笔记</li>
+                    <li><span class="status-indicator status-pending"></span>文件夹拖拽排序</li>
+                    <li><span class="status-indicator status-pending"></span>右键上下文菜单</li>
+                    <li><span class="status-indicator status-pending"></span>文件夹图标和颜色</li>
+                    <li><span class="status-indicator status-pending"></span>快捷键操作</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 演示拖拽功能
+        let draggedItem = null;
+
+        // 为演示笔记添加拖拽事件
+        document.querySelectorAll('.demo-item').forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                draggedItem = item;
+                item.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                draggedItem = null;
+            });
+        });
+
+        // 为放置区域添加拖拽事件
+        document.querySelectorAll('.drop-zone').forEach(zone => {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('drag-over');
+                e.dataTransfer.dropEffect = 'move';
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('drag-over');
+            });
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('drag-over');
+                
+                if (draggedItem) {
+                    const noteTitle = draggedItem.querySelector('strong').textContent;
+                    const folderName = zone.querySelector('strong').textContent;
+                    
+                    // 创建移动后的显示
+                    const movedNote = document.createElement('div');
+                    movedNote.style.cssText = 'margin: 5px 0; padding: 8px; background: #e8f5e8; border-radius: 4px; font-size: 12px;';
+                    movedNote.textContent = noteTitle;
+                    
+                    const notesContainer = zone.querySelector('div');
+                    notesContainer.appendChild(movedNote);
+                    
+                    // 显示成功消息
+                    showMessage(`✅ "${noteTitle}" 已移动到 "${folderName}"`);
+                    
+                    // 隐藏原始项目
+                    draggedItem.style.opacity = '0.3';
+                    draggedItem.style.pointerEvents = 'none';
+                    
+                    setTimeout(() => {
+                        if (draggedItem) {
+                            draggedItem.style.opacity = '1';
+                            draggedItem.style.pointerEvents = 'auto';
+                        }
+                    }, 2000);
+                }
+            });
+        });
+
+        function showMessage(text) {
+            const message = document.createElement('div');
+            message.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4caf50;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            message.textContent = text;
+            
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => message.remove(), 300);
+            }, 2000);
+        }
+
+        // 添加 CSS 动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 显示欢迎消息
+        setTimeout(() => {
+            showMessage('🎉 欢迎体验文件夹功能演示！试试拖拽笔记吧');
+        }, 1000);
+    </script>
+</body>
+</html>

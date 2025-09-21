@@ -1,0 +1,108 @@
+/* Trello 风格主题文件 */
+
+/* 全局动画 */
+@keyframes trello-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes trello-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes trello-slide-in {
+  from { transform: translateX(-10px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Trello 风格特效 */
+.trello-float {
+  animation: trello-float 3s ease-in-out infinite;
+}
+
+.trello-pulse {
+  animation: trello-pulse 2s ease-in-out infinite;
+}
+
+.trello-slide-in {
+  animation: trello-slide-in 0.3s ease-out;
+}
+
+/* 自定义选择器样式 */
+::selection {
+  background-color: rgba(139, 92, 246, 0.3);
+  color: inherit;
+}
+
+/* 自定义焦点环 */
+.trello-focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+/* Trello 风格加载器 */
+.trello-loader {
+  border: 3px solid rgba(139, 92, 246, 0.1);
+  border-top: 3px solid #8B5CF6;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 响应式辅助类 */
+@media (max-width: 768px) {
+  .trello-sidebar {
+    width: 100%;
+    position: fixed;
+    left: -100%;
+    transition: left 0.3s ease;
+    z-index: 50;
+  }
+  
+  .trello-sidebar.open {
+    left: 0;
+  }
+  
+  .trello-mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .trello-card {
+    border: 2px solid #374151;
+  }
+  
+  .trello-sidebar {
+    border-right: 2px solid #374151;
+  }
+}
+
+/* 减少动画偏好支持 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 深色模式支持（预留） */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --trello-primary: #A78BFA;
+    --trello-secondary: #C4B5FD;
+    --trello-background: linear-gradient(135deg, #4C1D95 0%, #6D28D9 50%, #7C3AED 100%);
+  }
+}

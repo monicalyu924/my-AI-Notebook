@@ -1,0 +1,261 @@
+# 性能测试配置文件
+
+# 基础配置
+base:
+  target_url: "http://localhost:8000"
+  duration: 300  # 测试持续时间（秒）
+  
+# 负载测试配置
+load_tests:
+  # 轻负载测试
+  light:
+    users: 10
+    spawn_rate: 2
+    duration: 180
+    description: "轻负载测试 - 模拟正常使用情况"
+    
+  # 中等负载测试  
+  medium:
+    users: 50
+    spawn_rate: 5
+    duration: 300
+    description: "中等负载测试 - 模拟繁忙时段"
+    
+  # 重负载测试
+  heavy:
+    users: 100
+    spawn_rate: 10
+    duration: 300
+    description: "重负载测试 - 模拟高峰期使用"
+    
+  # 极限负载测试
+  extreme:
+    users: 200
+    spawn_rate: 20
+    duration: 180
+    description: "极限负载测试 - 测试系统承载极限"
+
+# 压力测试配置
+stress_tests:
+  # 渐进式压力测试
+  progressive:
+    phases:
+      - users: 10
+        spawn_rate: 2
+        duration: 60
+      - users: 25
+        spawn_rate: 5
+        duration: 60
+      - users: 50
+        spawn_rate: 10
+        duration: 60
+      - users: 100
+        spawn_rate: 15
+        duration: 60
+      - users: 150
+        spawn_rate: 20
+        duration: 60
+    description: "渐进式压力测试 - 逐步增加负载"
+    
+  # 峰值压力测试
+  spike:
+    phases:
+      - users: 10
+        spawn_rate: 2
+        duration: 30
+      - users: 100
+        spawn_rate: 50
+        duration: 60
+      - users: 10
+        spawn_rate: 10
+        duration: 30
+    description: "峰值压力测试 - 模拟突发流量"
+
+# 持久性测试配置
+endurance_tests:
+  # 长时间稳定性测试
+  stability:
+    users: 30
+    spawn_rate: 3
+    duration: 1800  # 30分钟
+    description: "长时间稳定性测试"
+    
+  # 内存泄漏测试
+  memory_leak:
+    users: 20
+    spawn_rate: 2
+    duration: 3600  # 1小时
+    description: "内存泄漏检测测试"
+
+# 容量测试配置
+capacity_tests:
+  # 数据容量测试
+  data_volume:
+    users: 50
+    spawn_rate: 5
+    duration: 600
+    data_size: "large"  # 使用大量数据
+    description: "数据容量测试"
+    
+  # 并发容量测试
+  concurrency:
+    users: 500
+    spawn_rate: 50
+    duration: 300
+    description: "并发容量测试"
+
+# 性能指标阈值
+thresholds:
+  # 响应时间阈值（毫秒）
+  response_time:
+    average: 500
+    p95: 1000
+    p99: 2000
+    
+  # 错误率阈值
+  error_rate:
+    max: 0.01  # 最大1%错误率
+    
+  # 吞吐量阈值
+  throughput:
+    min_rps: 10  # 最小每秒请求数
+    
+  # 资源使用阈值
+  resources:
+    cpu_max: 80  # CPU最大使用率80%
+    memory_max: 80  # 内存最大使用率80%
+    disk_io_max: 80  # 磁盘IO最大使用率80%
+
+# 测试场景配置
+scenarios:
+  # 真实用户行为模拟
+  realistic_user:
+    tasks:
+      - name: "login"
+        weight: 1
+        frequency: "once"
+      - name: "view_notes_list"
+        weight: 20
+        frequency: "high"
+      - name: "view_note_detail"
+        weight: 15
+        frequency: "high"
+      - name: "search_notes"
+        weight: 10
+        frequency: "medium"
+      - name: "create_note"
+        weight: 5
+        frequency: "low"
+      - name: "update_note"
+        weight: 3
+        frequency: "low"
+      - name: "ai_summarize"
+        weight: 2
+        frequency: "low"
+      - name: "ai_chat"
+        weight: 2
+        frequency: "low"
+        
+  # API压力测试
+  api_stress:
+    tasks:
+      - name: "rapid_api_calls"
+        weight: 50
+        frequency: "very_high"
+      - name: "database_operations"
+        weight: 30
+        frequency: "high"
+      - name: "ai_operations"
+        weight: 20
+        frequency: "medium"
+
+# 监控配置
+monitoring:
+  # 系统指标监控
+  system_metrics:
+    - cpu_usage
+    - memory_usage
+    - disk_io
+    - network_io
+    - load_average
+    
+  # 应用指标监控
+  application_metrics:
+    - response_time
+    - error_rate
+    - throughput
+    - active_connections
+    - queue_length
+    
+  # 数据库指标监控
+  database_metrics:
+    - connection_count
+    - query_time
+    - lock_wait_time
+    - cache_hit_rate
+    - transaction_rate
+
+# 报告配置
+reporting:
+  # 输出格式
+  formats:
+    - html
+    - json
+    - csv
+    
+  # 报告内容
+  include:
+    - summary
+    - detailed_stats
+    - charts
+    - recommendations
+    
+  # 报告路径
+  output_dir: "./reports"
+  
+# 测试数据配置
+test_data:
+  # 用户数据
+  users:
+    count: 1000
+    username_prefix: "testuser_"
+    password: "test123456"
+    
+  # 笔记数据
+  notes:
+    count: 10000
+    title_templates:
+      - "测试笔记 {id}"
+      - "性能测试文档 {id}"
+      - "压力测试记录 {id}"
+    content_size_range:
+      min: 100
+      max: 5000
+      
+  # 分类数据
+  categories:
+    count: 50
+    name_templates:
+      - "测试分类 {id}"
+      - "性能分类 {id}"
+      
+  # 标签数据
+  tags:
+    count: 200
+    name_templates:
+      - "测试标签{id}"
+      - "性能{id}"
+
+# 环境配置
+environments:
+  development:
+    target_url: "http://localhost:8000"
+    database_url: "postgresql://user:pass@localhost:5432/ai_notebook_dev"
+    
+  staging:
+    target_url: "https://staging.ai-notebook.com"
+    database_url: "postgresql://user:pass@staging-db:5432/ai_notebook_staging"
+    
+  production:
+    target_url: "https://ai-notebook.com"
+    # 生产环境测试需要特殊权限和配置

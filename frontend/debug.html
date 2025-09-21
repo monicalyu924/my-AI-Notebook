@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React调试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .debug-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .error { 
+            color: red; 
+            background: #ffe6e6;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { 
+            color: green; 
+            background: #e6ffe6;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #005a8b; }
+        .console { 
+            background: #000; 
+            color: #0f0; 
+            padding: 10px; 
+            border-radius: 4px; 
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 React应用调试页面</h1>
+    
+    <div class="debug-section">
+        <h2>📊 服务器状态</h2>
+        <div id="server-status">检测中...</div>
+        <button onclick="checkServers()">重新检测</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>🔗 API测试</h2>
+        <button onclick="testHealthAPI()">测试健康检查</button>
+        <button onclick="testAuthAPI()">测试登录API</button>
+        <div id="api-results"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>⚛️ React应用状态</h2>
+        <p>主应用地址: <a href="http://localhost:5174" target="_blank">http://localhost:5174</a></p>
+        <button onclick="checkReactApp()">检查React应用</button>
+        <div id="react-status"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🗒️ 浏览器控制台日志</h2>
+        <button onclick="captureConsoleLogs()">捕获控制台日志</button>
+        <div id="console-logs" class="console">点击按钮查看控制台日志...</div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🛠️ 建议操作</h2>
+        <ol>
+            <li>检查所有服务器是否正常运行</li>
+            <li>在新标签页打开 <a href="http://localhost:5174" target="_blank">React应用</a></li>
+            <li>打开浏览器开发者工具 (F12)</li>
+            <li>查看Console标签页的错误信息</li>
+            <li>查看Network标签页的网络请求</li>
+            <li>如果看到错误边界页面，说明React组件有问题</li>
+        </ol>
+    </div>
+
+    <script>
+        // 重写console方法来捕获日志
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        let logs = [];
+
+        console.log = function(...args) {
+            logs.push({ type: 'log', message: args.join(' '), time: new Date().toLocaleTimeString() });
+            originalLog.apply(console, arguments);
+        };
+
+        console.error = function(...args) {
+            logs.push({ type: 'error', message: args.join(' '), time: new Date().toLocaleTimeString() });
+            originalError.apply(console, arguments);
+        };
+
+        console.warn = function(...args) {
+            logs.push({ type: 'warn', message: args.join(' '), time: new Date().toLocaleTimeString() });
+            originalWarn.apply(console, arguments);
+        };
+
+        async function checkServers() {
+            const statusDiv = document.getElementById('server-status');
+            statusDiv.innerHTML = '正在检测服务器状态...';
+
+            const servers = [
+                { name: '前端服务器', url: 'http://localhost:5174', type: 'head' },
+                { name: '后端服务器', url: 'http://localhost:8000/health', type: 'json' },
+                { name: '测试服务器', url: 'http://localhost:8080', type: 'head' }
+            ];
+
+            let results = [];
+
+            for (const server of servers) {
+                try {
+                    if (server.type === 'head') {
+                        const response = await fetch(server.url, { method: 'HEAD' });
+                        results.push(`✅ ${server.name}: 正常 (${response.status})`);
+                    } else if (server.type === 'json') {
+                        const response = await fetch(server.url);
+                        const data = await response.json();
+                        results.push(`✅ ${server.name}: 正常 (${JSON.stringify(data)})`);
+                    }
+                } catch (error) {
+                    results.push(`❌ ${server.name}: 错误 (${error.message})`);
+                }
+            }
+
+            statusDiv.innerHTML = results.join('<br>');
+        }
+
+        async function testHealthAPI() {
+            const resultsDiv = document.getElementById('api-results');
+            resultsDiv.innerHTML = '测试健康检查API...';
+
+            try {
+                const response = await fetch('http://localhost:8000/health');
+                const data = await response.json();
+                resultsDiv.innerHTML = `<div class="success">✅ 健康检查成功: ${JSON.stringify(data)}</div>`;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ 健康检查失败: ${error.message}</div>`;
+            }
+        }
+
+        async function testAuthAPI() {
+            const resultsDiv = document.getElementById('api-results');
+            resultsDiv.innerHTML += '<br>测试登录API...';
+
+            try {
+                const response = await fetch('http://localhost:8000/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: 'password123'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resultsDiv.innerHTML += `<div class="success">✅ 登录成功，获得token</div>`;
+                } else {
+                    const error = await response.json();
+                    resultsDiv.innerHTML += `<div class="error">❌ 登录失败: ${error.detail}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML += `<div class="error">❌ 登录请求错误: ${error.message}</div>`;
+            }
+        }
+
+        function checkReactApp() {
+            const statusDiv = document.getElementById('react-status');
+            statusDiv.innerHTML = '正在检查React应用...';
+
+            // 创建隐藏的iframe来测试React应用
+            const iframe = document.createElement('iframe');
+            iframe.src = 'http://localhost:5174';
+            iframe.style.display = 'none';
+            iframe.style.width = '1px';
+            iframe.style.height = '1px';
+
+            let hasLoaded = false;
+
+            iframe.onload = function() {
+                if (!hasLoaded) {
+                    hasLoaded = true;
+                    statusDiv.innerHTML = `
+                        <div class="success">✅ React应用页面加载成功</div>
+                        <p>如果页面显示空白，可能的原因：</p>
+                        <ul>
+                            <li>React组件渲染错误</li>
+                            <li>JavaScript运行时错误</li>
+                            <li>API请求失败</li>
+                            <li>路由配置问题</li>
+                        </ul>
+                        <p><strong>建议：</strong>在新标签页打开应用并查看开发者工具</p>
+                    `;
+                    setTimeout(() => document.body.removeChild(iframe), 1000);
+                }
+            };
+
+            iframe.onerror = function() {
+                if (!hasLoaded) {
+                    hasLoaded = true;
+                    statusDiv.innerHTML = `<div class="error">❌ React应用页面加载失败</div>`;
+                    setTimeout(() => document.body.removeChild(iframe), 1000);
+                }
+            };
+
+            // 5秒超时
+            setTimeout(() => {
+                if (!hasLoaded) {
+                    hasLoaded = true;
+                    statusDiv.innerHTML = `<div class="error">❌ React应用响应超时</div>`;
+                    if (iframe.parentNode) {
+                        document.body.removeChild(iframe);
+                    }
+                }
+            }, 5000);
+
+            document.body.appendChild(iframe);
+        }
+
+        function captureConsoleLogs() {
+            const consoleDiv = document.getElementById('console-logs');
+            
+            if (logs.length === 0) {
+                consoleDiv.innerHTML = '暂无控制台日志';
+                return;
+            }
+
+            let logHtml = '';
+            logs.forEach(log => {
+                const color = log.type === 'error' ? '#f00' : 
+                             log.type === 'warn' ? '#fa0' : '#0f0';
+                logHtml += `<span style="color: ${color}">[${log.time}] ${log.type.toUpperCase()}: ${log.message}</span>\n`;
+            });
+            
+            consoleDiv.innerHTML = logHtml;
+        }
+
+        // 页面加载时自动检测服务器
+        window.onload = function() {
+            checkServers();
+            
+            // 每5秒更新一次日志
+            setInterval(captureConsoleLogs, 5000);
+        };
+
+        // 监听未捕获的错误
+        window.addEventListener('error', function(e) {
+            console.error('未捕获的错误:', e.error);
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('未处理的Promise rejection:', e.reason);
+        });
+    </script>
+</body>
+</html>

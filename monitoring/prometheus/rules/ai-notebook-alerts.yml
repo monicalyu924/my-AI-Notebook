@@ -1,0 +1,213 @@
+# AI智能记事本告警规则
+groups:
+  - name: ai-notebook.rules
+    rules:
+      # 服务可用性告警
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "服务 {{ $labels.instance }} 宕机"
+          description: "服务 {{ $labels.instance }} 已宕机超过1分钟"
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "高错误率检测"
+          description: "{{ $labels.instance }} 5xx错误率超过10%"
+
+      # 系统资源告警
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU使用率过高"
+          description: "{{ $labels.instance }} CPU使用率超过80%"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "内存使用率过高"
+          description: "{{ $labels.instance }} 内存使用率超过85%"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "磁盘空间不足"
+          description: "{{ $labels.instance }} 根分区剩余空间少于10%"
+
+      # 应用特定告警
+      - alert: DatabaseConnectionFailed
+        expr: postgresql_up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "数据库连接失败"
+          description: "PostgreSQL数据库连接失败超过2分钟"
+
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis服务宕机"
+          description: "Redis缓存服务宕机超过1分钟"
+
+      - alert: HighDatabaseConnections
+        expr: postgresql_stat_database_numbackends > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "数据库连接数过高"
+          description: "数据库连接数超过80个"
+
+      # 容器相关告警
+      - alert: ContainerHighCPU
+        expr: rate(container_cpu_usage_seconds_total[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "容器CPU使用率过高"
+          description: "容器 {{ $labels.name }} CPU使用率超过80%"
+
+      - alert: ContainerHighMemory
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "容器内存使用率过高"
+          description: "容器 {{ $labels.name }} 内存使用率超过85%"
+
+      - alert: ContainerRestarting
+        expr: increase(container_start_time_seconds[1h]) > 3
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "容器频繁重启"
+          description: "容器 {{ $labels.name }} 在过去1小时内重启超过3次"
+
+      # 网络告警
+      - alert: HighNetworkTraffic
+        expr: rate(node_network_receive_bytes_total[5m]) > 50000000  # 50MB/s
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "网络流量过高"
+          description: "{{ $labels.instance }} 网络接收流量超过50MB/s"
+
+      # SSL证书告警
+      - alert: SSLCertificateExpiringSoon
+        expr: ssl_cert_not_after - time() < 7 * 24 * 3600  # 7天
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "SSL证书即将过期"
+          description: "域名 {{ $labels.instance }} 的SSL证书将在7天内过期"
+
+      - alert: SSLCertificateExpired
+        expr: ssl_cert_not_after - time() < 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SSL证书已过期"
+          description: "域名 {{ $labels.instance }} 的SSL证书已过期"
+
+      # 响应时间告警
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "响应时间过长"
+          description: "95%的请求响应时间超过2秒"
+
+      # 安全告警
+      - alert: TooManyFailedLogins
+        expr: rate(failed_login_attempts_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "登录失败次数过多"
+          description: "过去5分钟内平均每分钟登录失败超过5次"
+
+      - alert: UnauthorizedAccess
+        expr: rate(http_requests_total{status="401"}[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "未授权访问尝试"
+          description: "过去5分钟内平均每分钟401错误超过10次"
+
+      # 业务指标告警
+      - alert: LowUserActivity
+        expr: rate(user_active_sessions[1h]) < 1
+        for: 30m
+        labels:
+          severity: info
+        annotations:
+          summary: "用户活跃度低"
+          description: "过去1小时内活跃用户数少于1个"
+
+      - alert: HighDatabaseQueryTime
+        expr: avg(postgresql_stat_statement_mean_time_ms) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "数据库查询时间过长"
+          description: "平均数据库查询时间超过1秒"
+
+  # 系统级告警
+  - name: system.rules
+    rules:
+      - alert: SystemLoadHigh
+        expr: node_load1 > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "系统负载过高"
+          description: "{{ $labels.instance }} 1分钟负载超过2"
+
+      - alert: TooManyOpenFiles
+        expr: node_filefd_allocated / node_filefd_maximum * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "打开文件数过多"
+          description: "{{ $labels.instance }} 打开文件数超过80%限制"
+
+      - alert: NetworkInterfaceDown
+        expr: node_network_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "网络接口宕机"
+          description: "{{ $labels.instance }} 网络接口 {{ $labels.device }} 宕机"

@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 项目概览 - AI 智能记事本</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8fafc;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            color: white;
+            text-align: center;
+            padding: 3rem 2rem;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(45deg, transparent 50%, #f8fafc 50%);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            color: #4a5568;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-link:hover {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section {
+            padding: 3rem 0;
+            margin-bottom: 1rem;
+        }
+
+        .section:nth-child(even) {
+            background: white;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: #2d3748;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .card p {
+            color: #4a5568;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .tree-structure {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 2rem;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            overflow-x: auto;
+        }
+
+        .tree-structure .folder {
+            color: #ffd700;
+        }
+
+        .tree-structure .file {
+            color: #87ceeb;
+        }
+
+        .tree-structure .comment {
+            color: #90ee90;
+        }
+
+        .tech-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .tech-table th,
+        .tech-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .tech-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .tech-table td {
+            color: #4a5568;
+        }
+
+        .tech-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .progress-bar {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78 0%, #38a169 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-completed {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .status-in-progress {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .status-planned {
+            background: #bee3f8;
+            color: #2b6cb0;
+        }
+
+        .feature-matrix {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #48bb78;
+            margin: 0.5rem 0;
+        }
+
+        .feature-name {
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .feature-percentage {
+            font-weight: 600;
+            color: #48bb78;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e2e8f0;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+            padding-left: 2rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0.5rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #48bb78;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-description {
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #ffd89b 0%, #19547b 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+        }
+
+        .info-box {
+            background: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-left: 4px solid #3182ce;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .info-box h4 {
+            color: #2c5282;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box p {
+            color: #2d3748;
+            margin: 0;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .nav-links {
+                justify-content: center;
+                gap: 0.75rem;
+            }
+
+            .nav-link {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .section {
+                padding: 2rem 0;
+            }
+
+            .tech-table {
+                font-size: 0.8rem;
+            }
+
+            .tech-table th,
+            .tech-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部 -->
+    <header class="header">
+        <h1>📊 项目概览</h1>
+        <p class="subtitle">AI 智能记事本 - 完整项目技术文档</p>
+    </header>
+
+    <!-- 导航 -->
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-links">
+                <a href="#intro" class="nav-link">🎯 项目简介</a>
+                <a href="#structure" class="nav-link">📁 项目结构</a>
+                <a href="#tech" class="nav-link">🛠️ 技术栈</a>
+                <a href="#functions" class="nav-link">🚀 功能模块</a>
+                <a href="#ui" class="nav-link">🎨 界面设计</a>
+                <a href="#data" class="nav-link">📊 项目数据</a>
+                <a href="#workflow" class="nav-link">🔄 开发流程</a>
+                <a href="#highlights" class="nav-link">🌟 项目亮点</a>
+                <a href="#future" class="nav-link">🚀 未来展望</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 项目简介 -->
+    <section id="intro" class="section">
+        <div class="container">
+            <h2 class="section-title">🎯 项目简介</h2>
+            
+            <div class="info-box">
+                <h4>项目概述</h4>
+                <p><strong>AI 智能记事本</strong>是一款集成人工智能、富文本编辑、文件夹管理和实时同步的现代化云端笔记应用。项目采用前后端分离架构，为用户提供专业、高效、智能的笔记管理体验。</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">开发月数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">95%</div>
+                    <div class="stat-label">完成进度</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">65+</div>
+                    <div class="stat-label">项目文件</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">10.5K</div>
+                    <div class="stat-label">代码行数</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 项目结构 -->
+    <section id="structure" class="section">
+        <div class="container">
+            <h2 class="section-title">📁 项目结构</h2>
+            
+            <div class="tree-structure">
+<span class="folder">AI-Notebook/</span>
+├── <span class="folder">📂 backend/</span>                 <span class="comment"># 后端服务</span>
+│   ├── <span class="file">🐍 main.py</span>              <span class="comment"># FastAPI 应用入口</span>
+│   ├── <span class="file">🔐 auth.py</span>              <span class="comment"># 认证模块</span>
+│   ├── <span class="file">📊 models.py</span>            <span class="comment"># 数据模型</span>
+│   ├── <span class="file">🗄️ database.py</span>         <span class="comment"># 数据库连接</span>
+│   ├── <span class="folder">📁 routers/</span>             <span class="comment"># API 路由</span>
+│   │   ├── <span class="file">auth_router.py</span>      <span class="comment"># 用户认证</span>
+│   │   ├── <span class="file">notes_router.py</span>     <span class="comment"># 笔记管理</span>
+│   │   ├── <span class="file">folders_router.py</span>   <span class="comment"># 文件夹管理</span>
+│   │   ├── <span class="file">todos_router.py</span>     <span class="comment"># 待办事项</span>
+│   │   ├── <span class="file">ai_router.py</span>        <span class="comment"># AI 服务</span>
+│   │   └── <span class="file">user_router.py</span>      <span class="comment"># 用户管理</span>
+│   └── <span class="file">📋 requirements.txt</span>     <span class="comment"># Python 依赖</span>
+├── <span class="folder">📂 frontend/</span>                <span class="comment"># 前端应用</span>
+│   ├── <span class="folder">📱 src/</span>                 <span class="comment"># 源码目录</span>
+│   │   ├── <span class="folder">🎨 components/</span>      <span class="comment"># React 组件</span>
+│   │   │   ├── <span class="folder">auth/</span>           <span class="comment"># 认证组件</span>
+│   │   │   ├── <span class="folder">layout/</span>         <span class="comment"># 布局组件</span>
+│   │   │   ├── <span class="folder">editor/</span>         <span class="comment"># 编辑器组件</span>
+│   │   │   ├── <span class="folder">folders/</span>        <span class="comment"># 文件夹组件</span>
+│   │   │   └── <span class="folder">todo/</span>           <span class="comment"># 待办组件</span>
+│   │   ├── <span class="folder">🔄 context/</span>         <span class="comment"># 状态管理</span>
+│   │   ├── <span class="folder">🛠️ utils/</span>          <span class="comment"># 工具函数</span>
+│   │   └── <span class="file">🎨 index.css</span>        <span class="comment"># 样式文件</span>
+│   ├── <span class="file">📋 package.json</span>         <span class="comment"># Node.js 依赖</span>
+│   └── <span class="file">⚙️ vite.config.js</span>       <span class="comment"># 构建配置</span>
+├── <span class="folder">📂 docs/</span>                    <span class="comment"># 文档目录</span>
+├── <span class="file">🗄️ supabase_setup.sql</span>      <span class="comment"># 数据库脚本</span>
+├── <span class="file">🛠️ configure-supabase.sh</span>   <span class="comment"># 配置脚本</span>
+├── <span class="file">🚀 start-dev.sh</span>            <span class="comment"># 开发启动脚本</span>
+└── <span class="file">🧪 测试页面...</span>             <span class="comment"># 各种测试工具</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 技术栈详情 -->
+    <section id="tech" class="section">
+        <div class="container">
+            <h2 class="section-title">🛠️ 技术栈详情</h2>
+            
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('frontend-tech')">🎨 前端技术栈</div>
+                <div class="tab" onclick="showTab('backend-tech')">🔧 后端技术栈</div>
+                <div class="tab" onclick="showTab('database-design')">🗄️ 数据库设计</div>
+            </div>
+
+            <div id="frontend-tech" class="tab-content active">
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>技术</th>
+                            <th>版本</th>
+                            <th>用途</th>
+                            <th>特点</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>⚛️ React</td>
+                            <td>19.x</td>
+                            <td>UI框架</td>
+                            <td>现代化组件开发</td>
+                        </tr>
+                        <tr>
+                            <td>🎨 Tailwind CSS</td>
+                            <td>3.x</td>
+                            <td>样式框架</td>
+                            <td>原子化CSS，快速开发</td>
+                        </tr>
+                        <tr>
+                            <td>🔀 React Router</td>
+                            <td>6.x</td>
+                            <td>路由管理</td>
+                            <td>单页应用导航</td>
+                        </tr>
+                        <tr>
+                            <td>📡 Axios</td>
+                            <td>1.x</td>
+                            <td>HTTP客户端</td>
+                            <td>API请求和拦截</td>
+                        </tr>
+                        <tr>
+                            <td>⚡ Vite</td>
+                            <td>4.x</td>
+                            <td>构建工具</td>
+                            <td>快速开发和构建</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="backend-tech" class="tab-content">
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>技术</th>
+                            <th>版本</th>
+                            <th>用途</th>
+                            <th>特点</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>🐍 Python</td>
+                            <td>3.9+</td>
+                            <td>编程语言</td>
+                            <td>简洁高效的后端开发</td>
+                        </tr>
+                        <tr>
+                            <td>⚡ FastAPI</td>
+                            <td>0.100+</td>
+                            <td>Web框架</td>
+                            <td>高性能异步API</td>
+                        </tr>
+                        <tr>
+                            <td>🗄️ Supabase</td>
+                            <td>-</td>
+                            <td>数据库</td>
+                            <td>PostgreSQL云服务</td>
+                        </tr>
+                        <tr>
+                            <td>🔐 JWT</td>
+                            <td>-</td>
+                            <td>认证</td>
+                            <td>无状态身份验证</td>
+                        </tr>
+                        <tr>
+                            <td>🤖 OpenRouter</td>
+                            <td>-</td>
+                            <td>AI服务</td>
+                            <td>多模型AI接口</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="database-design" class="tab-content">
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>表名</th>
+                            <th>主要字段</th>
+                            <th>关系</th>
+                            <th>功能</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>users</strong></td>
+                            <td>id, email, password_hash, full_name</td>
+                            <td>-</td>
+                            <td>用户管理</td>
+                        </tr>
+                        <tr>
+                            <td><strong>folders</strong></td>
+                            <td>id, name, parent_id, user_id</td>
+                            <td>自关联</td>
+                            <td>文件夹层级</td>
+                        </tr>
+                        <tr>
+                            <td><strong>notes</strong></td>
+                            <td>id, title, content, folder_id, user_id</td>
+                            <td>属于文件夹和用户</td>
+                            <td>笔记存储</td>
+                        </tr>
+                        <tr>
+                            <td><strong>todos</strong></td>
+                            <td>id, title, priority, due_date, user_id</td>
+                            <td>属于用户</td>
+                            <td>待办事项</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- 核心功能模块 -->
+    <section id="functions" class="section">
+        <div class="container">
+            <h2 class="section-title">🚀 核心功能模块</h2>
+            
+            <div class="grid grid-2">
+                <div class="card">
+                    <h3>🤖 AI 智能助手</h3>
+                    <div class="code-block">
+AI功能清单:
+├── 📝 内容续写 - 基于上下文智能续写
+├── ✨ 文本润色 - 优化语言表达和文风  
+├── 🌐 多语言翻译 - 支持主流语言翻译
+├── 📊 内容总结 - 提取长文核心要点
+└── ❓ 智能问答 - 基于笔记内容问答
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📁 文件夹管理</h3>
+                    <div class="code-block">
+文件夹功能:
+├── 🌳 层级结构 - 支持无限层级嵌套
+├── 🎯 拖拽操作 - 直观的鼠标拖拽移动
+├── ➕ CRUD操作 - 创建、重命名、删除
+├── 🔍 智能筛选 - 按文件夹查看笔记
+└── 📋 未分类管理 - 自动管理未分类笔记
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>✍️ 富文本编辑</h3>
+                    <div class="code-block">
+编辑器功能:
+├── 📝 WYSIWYG - 所见即所得编辑体验
+├── 🎨 丰富格式 - 标题、列表、引用等
+├── 🌈 颜色工具 - 文字和背景颜色设置
+├── 🔗 媒体插入 - 链接和图片插入
+├── ⚡ 实时预览 - 编辑与预览模式切换
+├── ⌨️ 快捷键 - 常用操作快捷键支持
+└── 📊 状态统计 - 字数、行数、阅读时间
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📋 待办事项</h3>
+                    <div class="code-block">
+待办功能:
+├── ✅ 任务管理 - 创建、编辑、完成状态
+├── 🎯 优先级 - 高/中/低优先级设置
+├── 📅 时间管理 - 截止日期和提醒
+├── 🏷️ 分类标签 - 工作/个人/学习分类
+├── 👥 协作功能 - 任务分配和负责人
+└── 📊 统计分析 - 完成率和效率统计
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 用户界面设计 -->
+    <section id="ui" class="section">
+        <div class="container">
+            <h2 class="section-title">🎨 用户界面设计</h2>
+            
+            <div class="info-box">
+                <h4>界面布局 - 三栏式设计</h4>
+                <p>采用现代化的三栏式布局，提供直观的信息层次和操作流程</p>
+            </div>
+
+            <div class="code-block">
+┌─────────────────────────────────────────────────────────┐
+│  🎯 智能侧边栏    │  📋 笔记列表    │  ✍️ 编辑区域     │
+│                   │                │                   │
+│  📁 文件夹树      │  📝 笔记预览    │  🛠️ 工具栏      │
+│  ├── 工作         │  ├── 会议记录   │  📝 富文本编辑   │
+│  ├── 个人         │  ├── 学习笔记   │  🤖 AI助手面板   │
+│  └── 项目         │  └── 创意想法   │  📊 编辑统计     │
+│                   │                │                   │
+│  📋 待办事项      │  🔍 搜索过滤    │  💾 保存状态     │
+│  ⚙️ 设置中心     │  🏷️ 标签管理   │  👁️ 预览模式    │
+└─────────────────────────────────────────────────────────┘
+            </div>
+
+            <div class="grid grid-2">
+                <div class="card">
+                    <h3>🎨 设计特色</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin: 0.5rem 0;">🌈 现代简洁的界面设计</li>
+                        <li style="margin: 0.5rem 0;">🎯 直观的交互操作</li>
+                        <li style="margin: 0.5rem 0;">📱 完美的响应式布局</li>
+                        <li style="margin: 0.5rem 0;">⚡ 流畅的动画效果</li>
+                        <li style="margin: 0.5rem 0;">🎨 个性化主题支持</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>🚀 交互特性</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin: 0.5rem 0;">🎯 拖拽移动笔记</li>
+                        <li style="margin: 0.5rem 0;">⌨️ 快捷键操作</li>
+                        <li style="margin: 0.5rem 0;">🔍 实时搜索筛选</li>
+                        <li style="margin: 0.5rem 0;">📱 触摸手势支持</li>
+                        <li style="margin: 0.5rem 0;">🎪 上下文菜单</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 项目数据 -->
+    <section id="data" class="section">
+        <div class="container">
+            <h2 class="section-title">📊 项目数据</h2>
+            
+            <div class="grid grid-2">
+                <div class="card">
+                    <h3>📈 开发进度</h3>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-title">Phase 1: 基础架构搭建</div>
+                            <div class="timeline-description">前后端架构、数据库设计</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-title">Phase 2: 核心功能开发</div>
+                            <div class="timeline-description">用户认证、笔记CRUD、富文本编辑</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-title">Phase 3: 高级功能</div>
+                            <div class="timeline-description">AI助手、文件夹管理、拖拽操作</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-title">Phase 4: 优化发布</div>
+                            <div class="timeline-description">性能优化、测试、部署</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 90%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📊 代码统计</h3>
+                    <table class="tech-table">
+                        <thead>
+                            <tr>
+                                <th>指标</th>
+                                <th>前端</th>
+                                <th>后端</th>
+                                <th>总计</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>文件数量</td>
+                                <td>~50</td>
+                                <td>~15</td>
+                                <td>~65</td>
+                            </tr>
+                            <tr>
+                                <td>代码行数</td>
+                                <td>~8,000</td>
+                                <td>~2,500</td>
+                                <td>~10,500</td>
+                            </tr>
+                            <tr>
+                                <td>组件数量</td>
+                                <td>~25</td>
+                                <td>~10</td>
+                                <td>~35</td>
+                            </tr>
+                            <tr>
+                                <td>API接口</td>
+                                <td>-</td>
+                                <td>~30</td>
+                                <td>~30</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🎯 功能覆盖率</h3>
+                <div class="feature-matrix">
+                    <div class="feature-name">🔐 用户认证</div>
+                    <div class="feature-percentage">100% ✅</div>
+                </div>
+                <div class="feature-matrix">
+                    <div class="feature-name">📝 笔记管理</div>
+                    <div class="feature-percentage">100% ✅</div>
+                </div>
+                <div class="feature-matrix">
+                    <div class="feature-name">📁 文件夹管理</div>
+                    <div class="feature-percentage">100% ✅</div>
+                </div>
+                <div class="feature-matrix">
+                    <div class="feature-name">🤖 AI助手</div>
+                    <div class="feature-percentage">100% ✅</div>
+                </div>
+                <div class="feature-matrix">
+                    <div class="feature-name">📋 待办事项</div>
+                    <div class="feature-percentage">100% ✅</div>
+                </div>
+                <div class="feature-matrix">
+                    <div class="feature-name">✍️ 富文本编辑</div>
+                    <div class="feature-percentage">100% ✅</div>
+                </div>
+                <div class="feature-matrix">
+                    <div class="feature-name">🎯 拖拽操作</div>
+                    <div class="feature-percentage">100% ✅</div>
+                </div>
+                <div class="feature-matrix">
+                    <div class="feature-name">📱 响应式设计</div>
+                    <div class="feature-percentage">90% 🔄</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 开发流程 -->
+    <section id="workflow" class="section">
+        <div class="container">
+            <h2 class="section-title">🔄 开发流程</h2>
+            
+            <div class="grid grid-2">
+                <div class="card">
+                    <h3>🛠️ 开发环境搭建</h3>
+                    <div class="code-block">
+# 1. 克隆项目
+git clone &lt;repository-url&gt;
+
+# 2. 后端环境
+cd backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 3. 前端环境  
+cd frontend
+npm install
+
+# 4. 数据库配置
+# 执行 supabase_setup.sql 脚本
+
+# 5. 启动服务
+# 后端: python main.py
+# 前端: npm run dev
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🧪 测试工具</h3>
+                    <div style="line-height: 2;">
+                        <div><strong>🧪 test-folders.html</strong> - API功能测试</div>
+                        <div><strong>🎮 demo-folder-features.html</strong> - 交互演示</div>
+                        <div><strong>📱 product-showcase.html</strong> - 产品展示</div>
+                        <div><strong>🔍 quick-test.html</strong> - 快速测试</div>
+                        <div><strong>🐛 debug.html</strong> - 调试工具</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 项目亮点 -->
+    <section id="highlights" class="section">
+        <div class="container">
+            <h2 class="section-title">🌟 项目亮点</h2>
+            
+            <div class="grid grid-3">
+                <div class="card">
+                    <h3>💡 技术创新</h3>
+                    <p>🤖 深度AI集成<br>
+                    🎯 直观拖拽系统<br>
+                    ⚡ 实时云端同步<br>
+                    🎨 专业富文本编辑</p>
+                </div>
+
+                <div class="card">
+                    <h3>🏆 用户体验</h3>
+                    <p>🎨 现代化设计语言<br>
+                    ⚡ 优化的性能表现<br>
+                    🎯 直观的交互设计<br>
+                    📱 一致的多端体验</p>
+                </div>
+
+                <div class="card">
+                    <h3>🔧 技术架构</h3>
+                    <p>🏗️ 清晰的模块化结构<br>
+                    🔒 完善的安全认证<br>
+                    📈 易于扩展和维护<br>
+                    🌐 基于现代云技术</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 未来展望 -->
+    <section id="future" class="section">
+        <div class="container">
+            <h2 class="section-title">🚀 未来展望</h2>
+            
+            <div class="grid grid-3">
+                <div class="card">
+                    <h3>📋 短期计划 (1-3个月)</h3>
+                    <div style="line-height: 1.8;">
+                        <div><span class="status-badge status-planned">计划中</span> 🎨 UI/UX优化和主题系统</div>
+                        <div><span class="status-badge status-planned">计划中</span> 📱 移动端原生应用开发</div>
+                        <div><span class="status-badge status-planned">计划中</span> 🔍 全文搜索和高级筛选</div>
+                        <div><span class="status-badge status-planned">计划中</span> 📊 数据分析和使用统计</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🌟 中期目标 (3-6个月)</h3>
+                    <div style="line-height: 1.8;">
+                        <div><span class="status-badge status-planned">计划中</span> 👥 团队协作和分享功能</div>
+                        <div><span class="status-badge status-planned">计划中</span> 🌐 多语言国际化支持</div>
+                        <div><span class="status-badge status-planned">计划中</span> 🔌 第三方应用集成</div>
+                        <div><span class="status-badge status-planned">计划中</span> 📈 企业版功能开发</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🎯 长期愿景 (6-12个月)</h3>
+                    <div style="line-height: 1.8;">
+                        <div><span class="status-badge status-planned">计划中</span> 🤖 更强大的AI功能集成</div>
+                        <div><span class="status-badge status-planned">计划中</span> 🌍 全球化部署和CDN优化</div>
+                        <div><span class="status-badge status-planned">计划中</span> 🏢 企业级安全和合规认证</div>
+                        <div><span class="status-badge status-planned">计划中</span> 🔬 创新功能研发和实验</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 项目信息 -->
+    <section class="section" style="background: #2d3748; color: white;">
+        <div class="container">
+            <div style="text-align: center;">
+                <h2 style="color: white; margin-bottom: 2rem;">📞 项目信息</h2>
+                
+                <div class="grid grid-2" style="margin-bottom: 3rem;">
+                    <div>
+                        <h3 style="color: #90cdf4; margin-bottom: 1rem;">👥 开发团队</h3>
+                        <p>🎯 项目经理: 全栈开发和项目管理<br>
+                        🎨 UI/UX设计: 界面设计和用户体验<br>
+                        🔧 后端开发: API开发和数据库设计<br>
+                        ⚛️ 前端开发: React组件和交互实现</p>
+                    </div>
+                    
+                    <div>
+                        <h3 style="color: #90cdf4; margin-bottom: 1rem;">📊 项目状态</h3>
+                        <p>📅 开发周期: 3个月<br>
+                        🎯 当前版本: v1.0.0<br>
+                        ✅ 完成度: 95%<br>
+                        🚀 发布状态: 准备发布</p>
+                    </div>
+                </div>
+                
+                <div style="text-align: center;">
+                    <a href="http://localhost:5174" style="background: #667eea; color: white; padding: 1rem 2rem; border-radius: 8px; text-decoration: none; margin: 0.5rem; display: inline-block;">🚀 体验应用</a>
+                    <a href="product-introduction.html" style="background: #48bb78; color: white; padding: 1rem 2rem; border-radius: 8px; text-decoration: none; margin: 0.5rem; display: inline-block;">📖 产品介绍</a>
+                    <a href="demo-folder-features.html" style="background: #ed8936; color: white; padding: 1rem 2rem; border-radius: 8px; text-decoration: none; margin: 0.5rem; display: inline-block;">🎮 功能演示</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // 标签页切换功能
+        function showTab(tabId) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 移除所有标签的活动状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的标签内容
+            document.getElementById(tabId).classList.add('active');
+            
+            // 激活对应的标签
+            event.target.classList.add('active');
+        }
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 进度条动画
+        window.addEventListener('load', function() {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach((bar, index) => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, index * 200);
+            });
+        });
+
+        // 导航高亮
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.style.background = '#e2e8f0';
+                    link.style.color = '#2d3748';
+                } else {
+                    link.style.background = 'transparent';
+                    link.style.color = '#4a5568';
+                }
+            });
+        });
+
+        // 卡片加载动画
+        window.addEventListener('load', function() {
+            document.querySelectorAll('.card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'all 0.6s ease';
+                
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

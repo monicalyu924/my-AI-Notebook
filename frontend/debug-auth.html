@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        input, button { padding: 10px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #007bff; color: white; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .log { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; max-height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Authentication Debug Tool</h1>
+    
+    <div class="test-section">
+        <h2>1. 后端连接测试</h2>
+        <button onclick="testBackendConnection()">测试后端连接</button>
+        <div id="backend-result" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. 用户注册测试</h2>
+        <input type="email" id="reg-email" placeholder="邮箱" value="debug@test.com">
+        <input type="password" id="reg-password" placeholder="密码" value="debug123456">
+        <input type="text" id="reg-name" placeholder="姓名" value="Debug User">
+        <button onclick="testRegister()">测试注册</button>
+        <div id="register-result" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. 用户登录测试</h2>
+        <input type="email" id="login-email" placeholder="邮箱" value="test@example.com">
+        <input type="password" id="login-password" placeholder="密码" value="testpassword123">
+        <button onclick="testLogin()">测试登录</button>
+        <div id="login-result" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. 前端应用状态</h2>
+        <button onclick="checkFrontendStatus()">检查前端状态</button>
+        <div id="frontend-result" class="log"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            element.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        async function testBackendConnection() {
+            const resultId = 'backend-result';
+            document.getElementById(resultId).innerHTML = '';
+            
+            try {
+                log(resultId, '正在测试后端连接...', 'info');
+                
+                // 测试文档端点
+                const docsResponse = await fetch(`${API_BASE}/docs`);
+                if (docsResponse.ok) {
+                    log(resultId, '✅ 后端服务正常运行', 'success');
+                } else {
+                    log(resultId, `❌ 文档端点失败: ${docsResponse.status}`, 'error');
+                }
+                
+                // 测试 OpenAPI schema
+                const openApiResponse = await fetch(`${API_BASE}/openapi.json`);
+                if (openApiResponse.ok) {
+                    const schema = await openApiResponse.json();
+                    log(resultId, `✅ API Schema 加载成功 (${Object.keys(schema.paths).length} 个端点)`, 'success');
+                    
+                    // 显示认证相关端点
+                    const authEndpoints = Object.keys(schema.paths).filter(path => path.includes('/auth'));
+                    log(resultId, `认证端点: ${authEndpoints.join(', ')}`, 'info');
+                } else {
+                    log(resultId, '❌ OpenAPI schema 加载失败', 'error');
+                }
+                
+            } catch (error) {
+                log(resultId, `❌ 连接错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function testRegister() {
+            const resultId = 'register-result';
+            document.getElementById(resultId).innerHTML = '';
+            
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const fullName = document.getElementById('reg-name').value;
+            
+            try {
+                log(resultId, `正在注册用户: ${email}`, 'info');
+                
+                const response = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        full_name: fullName
+                    }),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(resultId, '✅ 注册成功!', 'success');
+                    log(resultId, `访问令牌: ${data.access_token.substring(0, 20)}...`, 'success');
+                } else {
+                    log(resultId, `❌ 注册失败: ${data.detail}`, 'error');
+                }
+                
+            } catch (error) {
+                log(resultId, `❌ 注册请求错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            const resultId = 'login-result';
+            document.getElementById(resultId).innerHTML = '';
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                log(resultId, `正在登录用户: ${email}`, 'info');
+                
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    }),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(resultId, '✅ 登录成功!', 'success');
+                    log(resultId, `访问令牌: ${data.access_token.substring(0, 20)}...`, 'success');
+                    
+                    // 测试获取用户资料
+                    try {
+                        const profileResponse = await fetch(`${API_BASE}/api/user/profile`, {
+                            headers: {
+                                'Authorization': `Bearer ${data.access_token}`,
+                            },
+                        });
+                        
+                        if (profileResponse.ok) {
+                            const profile = await profileResponse.json();
+                            log(resultId, `✅ 用户资料获取成功: ${profile.full_name || profile.email}`, 'success');
+                        } else {
+                            log(resultId, `⚠️ 用户资料获取失败: ${profileResponse.status}`, 'error');
+                        }
+                    } catch (profileError) {
+                        log(resultId, `⚠️ 用户资料请求错误: ${profileError.message}`, 'error');
+                    }
+                    
+                } else {
+                    log(resultId, `❌ 登录失败: ${data.detail}`, 'error');
+                }
+                
+            } catch (error) {
+                log(resultId, `❌ 登录请求错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkFrontendStatus() {
+            const resultId = 'frontend-result';
+            document.getElementById(resultId).innerHTML = '';
+            
+            try {
+                log(resultId, '检查前端应用状态...', 'info');
+                
+                // 检查前端服务是否运行
+                const frontendResponse = await fetch('http://localhost:5173');
+                if (frontendResponse.ok) {
+                    log(resultId, '✅ 前端服务正常运行 (http://localhost:5173)', 'success');
+                } else {
+                    log(resultId, '❌ 前端服务无法访问', 'error');
+                }
+                
+                // 检查 localStorage
+                if (typeof Storage !== 'undefined') {
+                    const token = localStorage.getItem('token');
+                    if (token) {
+                        log(resultId, `✅ 本地存储中有令牌: ${token.substring(0, 20)}...`, 'success');
+                    } else {
+                        log(resultId, '⚠️ 本地存储中没有令牌', 'info');
+                    }
+                } else {
+                    log(resultId, '❌ 浏览器不支持 localStorage', 'error');
+                }
+                
+                // 检查 CORS
+                log(resultId, '测试 CORS 配置...', 'info');
+                const corsResponse = await fetch(`${API_BASE}/openapi.json`, {
+                    method: 'GET',
+                    headers: {
+                        'Origin': 'http://localhost:5173'
+                    }
+                });
+                
+                if (corsResponse.ok) {
+                    log(resultId, '✅ CORS 配置正常', 'success');
+                } else {
+                    log(resultId, '❌ CORS 配置可能有问题', 'error');
+                }
+                
+            } catch (error) {
+                log(resultId, `❌ 检查错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载时自动测试后端连接
+        window.addEventListener('load', () => {
+            testBackendConnection();
+        });
+    </script>
+</body>
+</html>

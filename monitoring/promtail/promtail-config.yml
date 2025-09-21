@@ -1,0 +1,113 @@
+# Promtail配置文件
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # 应用日志收集
+  - job_name: ai-notebook-backend
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: ai-notebook-backend
+          __path__: /var/log/app/backend/*.log
+    pipeline_stages:
+      - match:
+          selector: '{job="ai-notebook-backend"}'
+          stages:
+            - regex:
+                expression: '(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) - (?P<level>\w+) - (?P<message>.*)'
+            - labels:
+                level:
+            - timestamp:
+                source: timestamp
+                format: '2006-01-02 15:04:05'
+
+  - job_name: nginx-access
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx-access
+          __path__: /var/log/app/nginx/access.log
+    pipeline_stages:
+      - match:
+          selector: '{job="nginx-access"}'
+          stages:
+            - regex:
+                expression: '(?P<remote_addr>\S+) \S+ \S+ \[(?P<time_local>[^\]]+)\] "(?P<method>\S+) (?P<path>\S+) (?P<protocol>\S+)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)"'
+            - labels:
+                method:
+                status:
+                path:
+            - timestamp:
+                source: time_local
+                format: '02/Jan/2006:15:04:05 -0700'
+
+  - job_name: nginx-error
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx-error
+          __path__: /var/log/app/nginx/error.log
+    pipeline_stages:
+      - match:
+          selector: '{job="nginx-error"}'
+          stages:
+            - regex:
+                expression: '(?P<timestamp>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) \[(?P<level>\w+)\] (?P<message>.*)'
+            - labels:
+                level:
+            - timestamp:
+                source: timestamp
+                format: '2006/01/02 15:04:05'
+
+  # 系统日志收集
+  - job_name: syslog
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: syslog
+          __path__: /var/log/syslog
+    pipeline_stages:
+      - match:
+          selector: '{job="syslog"}'
+          stages:
+            - regex:
+                expression: '(?P<timestamp>\w{3} \d{1,2} \d{2}:\d{2}:\d{2}) (?P<hostname>\S+) (?P<program>\S+)(?:\[(?P<pid>\d+)\])?: (?P<message>.*)'
+            - labels:
+                program:
+                hostname:
+            - timestamp:
+                source: timestamp
+                format: 'Jan 02 15:04:05'
+
+  # 安全日志收集
+  - job_name: auth-log
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: auth-log
+          __path__: /var/log/auth.log
+    pipeline_stages:
+      - match:
+          selector: '{job="auth-log"}'
+          stages:
+            - regex:
+                expression: '(?P<timestamp>\w{3} \d{1,2} \d{2}:\d{2}:\d{2}) (?P<hostname>\S+) (?P<program>\S+)(?:\[(?P<pid>\d+)\])?: (?P<message>.*)'
+            - labels:
+                program:
+                hostname:
+            - timestamp:
+                source: timestamp
+                format: 'Jan 02 15:04:05'

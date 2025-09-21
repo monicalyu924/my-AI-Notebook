@@ -1,0 +1,47 @@
+# Grafana仪表板配置
+apiVersion: 1
+
+providers:
+  - name: 'ai-notebook-dashboards'
+    orgId: 1
+    folder: 'AI智能记事本'
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/json
+
+  - name: 'system-dashboards'
+    orgId: 1
+    folder: '系统监控'
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/system
+
+  - name: 'application-dashboards'
+    orgId: 1
+    folder: '应用监控'
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/application
+
+  - name: 'security-dashboards'
+    orgId: 1
+    folder: '安全监控'
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/security

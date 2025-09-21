@@ -1,0 +1,265 @@
+# 生产环境安全配置
+# AI智能记事本安全强化设置
+
+version: '1.0'
+name: "AI智能记事本安全配置"
+
+# 网络安全配置
+network_security:
+  # 防火墙规则
+  firewall:
+    enabled: true
+    default_policy: deny
+    rules:
+      - name: "SSH Access"
+        port: 22
+        protocol: tcp
+        source: "management_ips"
+        action: allow
+      - name: "HTTP"
+        port: 80
+        protocol: tcp
+        source: "0.0.0.0/0"
+        action: allow
+      - name: "HTTPS"
+        port: 443
+        protocol: tcp
+        source: "0.0.0.0/0"
+        action: allow
+      - name: "Block All Other"
+        port: "1-65535"
+        protocol: tcp
+        source: "0.0.0.0/0"
+        action: deny
+
+  # DDoS防护
+  ddos_protection:
+    enabled: true
+    rate_limit:
+      requests_per_second: 100
+      burst_size: 200
+      connection_timeout: 30
+    ip_whitelist:
+      - "192.168.0.0/16"
+      - "10.0.0.0/8"
+
+  # SSL/TLS配置
+  tls:
+    min_version: "1.2"
+    preferred_version: "1.3"
+    cipher_suites:
+      - "TLS_AES_256_GCM_SHA384"
+      - "TLS_CHACHA20_POLY1305_SHA256"
+      - "ECDHE-RSA-AES256-GCM-SHA384"
+    hsts:
+      enabled: true
+      max_age: 31536000
+      include_subdomains: true
+      preload: true
+
+# 应用安全配置
+application_security:
+  # 身份验证
+  authentication:
+    jwt:
+      algorithm: "HS256"
+      expiration: 3600  # 1小时
+      refresh_expiration: 604800  # 7天
+      issuer: "ai-notebook.com"
+    session:
+      secure: true
+      httponly: true
+      samesite: "strict"
+      timeout: 1800  # 30分钟
+
+  # 密码策略
+  password_policy:
+    min_length: 12
+    require_uppercase: true
+    require_lowercase: true
+    require_numbers: true
+    require_symbols: true
+    max_attempts: 5
+    lockout_duration: 900  # 15分钟
+
+  # 输入验证
+  input_validation:
+    max_file_size: "10MB"
+    allowed_file_types:
+      - ".txt"
+      - ".md"
+      - ".pdf"
+      - ".doc"
+      - ".docx"
+    sanitize_html: true
+    escape_sql: true
+
+  # CORS配置
+  cors:
+    enabled: true
+    allowed_origins:
+      - "https://ai-notebook.com"
+      - "https://www.ai-notebook.com"
+    allowed_methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+    allowed_headers:
+      - "Content-Type"
+      - "Authorization"
+    max_age: 86400
+
+# 数据安全配置
+data_security:
+  # 数据库安全
+  database:
+    encryption_at_rest: true
+    encryption_algorithm: "AES-256"
+    backup_encryption: true
+    connection_ssl: true
+    
+  # 密钥管理
+  key_management:
+    rotation_interval: 90  # 90天
+    key_length: 256
+    storage_type: "hsm"  # 硬件安全模块
+    
+  # 数据分类
+  data_classification:
+    levels:
+      - name: "public"
+        description: "公开数据"
+      - name: "internal"
+        description: "内部数据"
+      - name: "confidential"
+        description: "机密数据"
+      - name: "restricted"
+        description: "限制数据"
+
+# 访问控制
+access_control:
+  # 基于角色的访问控制
+  rbac:
+    enabled: true
+    roles:
+      - name: "admin"
+        permissions:
+          - "user.create"
+          - "user.read"
+          - "user.update"
+          - "user.delete"
+          - "system.configure"
+      - name: "user"
+        permissions:
+          - "note.create"
+          - "note.read"
+          - "note.update"
+          - "note.delete"
+      - name: "viewer"
+        permissions:
+          - "note.read"
+
+  # API访问控制
+  api_security:
+    rate_limiting:
+      enabled: true
+      requests_per_minute: 60
+      burst_allowance: 10
+    api_keys:
+      enabled: true
+      expiration: 365  # 1年
+      rate_limit: 1000  # 每小时
+
+# 监控和审计
+monitoring:
+  # 安全事件监控
+  security_events:
+    failed_login_attempts: true
+    privilege_escalation: true
+    data_access_anomalies: true
+    suspicious_network_activity: true
+    
+  # 日志配置
+  logging:
+    level: "INFO"
+    retention_days: 90
+    log_types:
+      - "authentication"
+      - "authorization"
+      - "data_access"
+      - "system_changes"
+      - "security_events"
+    
+  # 实时告警
+  alerting:
+    channels:
+      - type: "email"
+        recipients: ["admin@ai-notebook.com"]
+      - type: "slack"
+        webhook_url: "${SLACK_WEBHOOK_URL}"
+    triggers:
+      - event: "multiple_failed_logins"
+        threshold: 5
+        time_window: 300  # 5分钟
+      - event: "unusual_data_access"
+        threshold: 100
+        time_window: 3600  # 1小时
+
+# 合规性配置
+compliance:
+  # GDPR合规
+  gdpr:
+    enabled: true
+    data_retention_days: 730  # 2年
+    right_to_erasure: true
+    data_portability: true
+    
+  # 数据本地化
+  data_localization:
+    enabled: true
+    regions:
+      - "eu-west-1"
+      - "ap-northeast-1"
+    
+  # 审计要求
+  audit:
+    enabled: true
+    audit_trail: true
+    integrity_checking: true
+
+# 灾难恢复
+disaster_recovery:
+  # 备份策略
+  backup:
+    frequency: "daily"
+    retention_days: 30
+    encryption: true
+    verification: true
+    
+  # 恢复计划
+  recovery:
+    rto: 4  # 恢复时间目标：4小时
+    rpo: 1  # 恢复点目标：1小时
+    backup_locations:
+      - "primary_region"
+      - "secondary_region"
+
+# 安全测试
+security_testing:
+  # 漏洞扫描
+  vulnerability_scanning:
+    enabled: true
+    frequency: "weekly"
+    scan_types:
+      - "dependency_check"
+      - "code_analysis"
+      - "container_scan"
+      
+  # 渗透测试
+  penetration_testing:
+    frequency: "quarterly"
+    scope:
+      - "web_application"
+      - "api_endpoints"
+      - "network_infrastructure"

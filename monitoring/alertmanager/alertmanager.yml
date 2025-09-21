@@ -1,0 +1,204 @@
+# AlertManager配置文件
+global:
+  smtp_smarthost: '${SMTP_HOST}:587'
+  smtp_from: 'alerts@ai-notebook.com'
+  smtp_auth_username: '${SMTP_USERNAME}'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_auth_identity: '${SMTP_USERNAME}'
+
+# 抑制规则
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']
+
+# 路由配置
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10m
+  repeat_interval: 12h
+  receiver: 'default-receiver'
+  routes:
+    # 紧急告警路由
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 5s
+      repeat_interval: 5m
+      
+    # 警告告警路由
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 30s
+      repeat_interval: 30m
+      
+    # 信息告警路由
+    - match:
+        severity: info
+      receiver: 'info-alerts'
+      group_wait: 60s
+      repeat_interval: 6h
+
+    # 数据库相关告警
+    - match_re:
+        alertname: .*Database.*
+      receiver: 'database-alerts'
+      
+    # 安全相关告警
+    - match_re:
+        alertname: .*(Login|Unauthorized|Security).*
+      receiver: 'security-alerts'
+      repeat_interval: 15m
+
+# 接收器配置
+receivers:
+  # 默认接收器
+  - name: 'default-receiver'
+    email_configs:
+      - to: 'admin@ai-notebook.com'
+        subject: '[AI记事本] 监控告警 - {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          告警名称: {{ .Annotations.summary }}
+          告警描述: {{ .Annotations.description }}
+          告警级别: {{ .Labels.severity }}
+          实例: {{ .Labels.instance }}
+          开始时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ if .EndsAt }}结束时间: {{ .EndsAt.Format "2006-01-02 15:04:05" }}{{ end }}
+          
+          详细信息:
+          {{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }}
+          {{ end }}
+          {{ end }}
+
+  # 紧急告警接收器
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'admin@ai-notebook.com, ops@ai-notebook.com'
+        subject: '[紧急] AI记事本系统告警 - {{ .GroupLabels.alertname }}'
+        body: |
+          🚨 紧急告警 🚨
+          
+          {{ range .Alerts }}
+          告警名称: {{ .Annotations.summary }}
+          告警描述: {{ .Annotations.description }}
+          实例: {{ .Labels.instance }}
+          开始时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          请立即检查系统状态！
+          {{ end }}
+        headers:
+          Priority: high
+          X-Priority: 1
+          
+    # Slack通知（如果配置了）
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts'
+        color: danger
+        title: '🚨 紧急系统告警'
+        text: |
+          {{ range .Alerts }}
+          *告警*: {{ .Annotations.summary }}
+          *描述*: {{ .Annotations.description }}
+          *实例*: {{ .Labels.instance }}
+          *时间*: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+
+  # 警告告警接收器
+  - name: 'warning-alerts'
+    email_configs:
+      - to: 'admin@ai-notebook.com'
+        subject: '[警告] AI记事本监控告警 - {{ .GroupLabels.alertname }}'
+        body: |
+          ⚠️ 系统警告 ⚠️
+          
+          {{ range .Alerts }}
+          告警名称: {{ .Annotations.summary }}
+          告警描述: {{ .Annotations.description }}
+          实例: {{ .Labels.instance }}
+          开始时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+          
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#monitoring'
+        color: warning
+        title: '⚠️ 系统警告'
+        text: |
+          {{ range .Alerts }}
+          *告警*: {{ .Annotations.summary }}
+          *实例*: {{ .Labels.instance }}
+          {{ end }}
+
+  # 信息告警接收器
+  - name: 'info-alerts'
+    email_configs:
+      - to: 'monitoring@ai-notebook.com'
+        subject: '[信息] AI记事本系统通知 - {{ .GroupLabels.alertname }}'
+        body: |
+          ℹ️ 系统信息 ℹ️
+          
+          {{ range .Alerts }}
+          通知内容: {{ .Annotations.summary }}
+          详细描述: {{ .Annotations.description }}
+          实例: {{ .Labels.instance }}
+          时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+
+  # 数据库告警接收器
+  - name: 'database-alerts'
+    email_configs:
+      - to: 'admin@ai-notebook.com, dba@ai-notebook.com'
+        subject: '[数据库] AI记事本数据库告警 - {{ .GroupLabels.alertname }}'
+        body: |
+          🗄️ 数据库告警 🗄️
+          
+          {{ range .Alerts }}
+          告警名称: {{ .Annotations.summary }}
+          告警描述: {{ .Annotations.description }}
+          数据库实例: {{ .Labels.instance }}
+          开始时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          请立即检查数据库状态和性能指标！
+          {{ end }}
+
+  # 安全告警接收器
+  - name: 'security-alerts'
+    email_configs:
+      - to: 'admin@ai-notebook.com, security@ai-notebook.com'
+        subject: '[安全] AI记事本安全告警 - {{ .GroupLabels.alertname }}'
+        body: |
+          🔒 安全告警 🔒
+          
+          {{ range .Alerts }}
+          告警名称: {{ .Annotations.summary }}
+          告警描述: {{ .Annotations.description }}
+          来源: {{ .Labels.instance }}
+          开始时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          检测到可能的安全威胁，请立即调查！
+          {{ end }}
+        headers:
+          Priority: high
+          X-Priority: 1
+          
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#security'
+        color: danger
+        title: '🔒 安全告警'
+        text: |
+          {{ range .Alerts }}
+          *安全事件*: {{ .Annotations.summary }}
+          *来源*: {{ .Labels.instance }}
+          *时间*: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+
+# 模板配置
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
