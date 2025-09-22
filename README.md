@@ -1,4 +1,4 @@
-# AI Notebook - AI驱动的云端同步记事本
+# my-AI-Notebook - AI驱动的云端同步记事本
 
 一个基于React和FastAPI的现代化记事本应用，支持AI助手功能。
 
