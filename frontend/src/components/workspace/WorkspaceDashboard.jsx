@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNotes } from '../../context/NotesContext';
 import { useProjects } from '../../context/ProjectContext';
 import { useTodos } from '../../context/TodoContext';
-import { Brain, Target, Clock, TrendingUp, Calendar, FileText, CheckCircle2, Users, Settings } from 'lucide-react';
+import { Brain, Target, Clock, TrendingUp, Calendar, FileText, CheckCircle2, Users, Settings, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 function WorkspaceDashboard({ onViewChange }) {
@@ -115,6 +115,10 @@ function WorkspaceDashboard({ onViewChange }) {
     navigate('/settings');
   }, [navigate]);
 
+  const handleProductivityDashboard = useCallback(() => {
+    navigate('/dashboard');
+  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 头部欢迎区域 */}
@@ -180,7 +184,7 @@ function WorkspaceDashboard({ onViewChange }) {
         {/* 主要功能模块 */}
         <div className="mb-6 sm:mb-8">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">功能中心</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6">
             {/* 记事本 */}
             <div className="group">
               <button
@@ -271,6 +275,25 @@ function WorkspaceDashboard({ onViewChange }) {
                   <p className="text-sm text-gray-600 leading-relaxed">番茄工作法提升专注力</p>
                   <div className="mt-3 text-xs text-red-600 font-medium">
                     {workspaceStats.focusTime}分钟
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* 个人生产力仪表盘 */}
+            <div className="group">
+              <button
+                onClick={handleProductivityDashboard}
+                className="w-full p-6 bg-white rounded-2xl border border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all duration-300 text-left group-hover:scale-105"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-indigo-100 transition-colors">
+                    <BarChart3 className="w-8 h-8 text-indigo-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">生产力仪表盘</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">追踪和分析个人生产力数据</p>
+                  <div className="mt-3 text-xs text-indigo-600 font-medium">
+                    数据分析
                   </div>
                 </div>
               </button>
