@@ -19,6 +19,7 @@ const MainAppPage = lazy(() => import('./components/MainAppPage'));
 const SettingsPage = lazy(() => import('./components/SettingsPage'));
 const CommandPalette = lazy(() => import('./components/common/CommandPalette'));
 const TestSparkles = lazy(() => import('./components/TestSparkles'));
+const ProductivityDashboard = lazy(() => import('./components/dashboard/ProductivityDashboard'));
 
 function App() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -87,6 +88,16 @@ function App() {
                   <ErrorBoundary>
                     <SuspenseWrapper>
                       <SettingsPage />
+                    </SuspenseWrapper>
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <ErrorBoundary>
+                    <SuspenseWrapper>
+                      <ProductivityDashboard />
                     </SuspenseWrapper>
                   </ErrorBoundary>
                 </ProtectedRoute>
