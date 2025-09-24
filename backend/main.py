@@ -9,10 +9,21 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# 配置CORS
+# 配置CORS - 支持开发环境和生产环境
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "null"],  # 前端开发服务器 + file://协议
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://localhost:5173", 
+        "http://localhost:5174", 
+        "http://localhost:5175", 
+        "http://localhost:5176", 
+        "null",
+        # Vercel 生产环境域名 (将在部署后更新具体域名)
+        "https://*.vercel.app",
+        # 其他可能的生产域名
+        "https://*.ai-notebook.app"
+    ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
