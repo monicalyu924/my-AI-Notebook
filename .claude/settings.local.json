@@ -31,7 +31,18 @@
       "Bash(source:*)",
       "Bash(python3:*)",
       "Bash(pip install:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(git checkout:*)",
+      "Bash(git reset:*)",
+      "Bash(tree:*)",
+      "Bash(chmod:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\n改进API密钥配置和错误处理机制\n\n主要改进:\n- 增强OpenRouter API密钥验证，检测Claude Code专用密钥\n- 优化错误提示信息，提供详细的配置指导\n- 添加项目结构验证脚本和快速导航工具\n- 完善README文档，新增API密钥配置详细说明\n\n技术改进:\n- backend/routers/ai_router.py: 添加密钥格式验证和友好错误提示\n- backend/routers/chat_router.py: 同步聊天功能的密钥验证逻辑\n- frontend/SettingsPage.jsx: 实时密钥格式检查和可视化指引\n\n新增工具:\n- verify-project.sh: 项目完整性验证脚本（42项检查）\n- quick-nav.sh: 快速导航和状态查看工具\n- PROJECT_STRUCTURE_FIXED.md: 项目结构说明文档\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit -m \"$(cat <<''EOF''\n全面提升用户体验：新增Toast通知、加载器和导航组件\n\n主要改进:\n- 新增Toast通知系统，提供优雅的操作反馈\n- 添加返回顶部按钮，改善长页面导航体验\n- 创建增强版加载指示器，支持多种加载样式\n- 骨架屏加载器已存在，保持数据加载流畅\n\n新增组件:\n- frontend/src/components/common/Toast.jsx: \n  * 4种通知类型（success/error/warning/info）\n  * 自动关闭和进度条显示\n  * Framer Motion动画效果\n  \n- frontend/src/components/common/ScrollToTop.jsx:\n  * 滚动阈值自动显示/隐藏\n  * 平滑滚动动画\n  * 响应式设计\n\n- frontend/src/components/common/EnhancedLoadingSpinner.jsx:\n  * 旋转/圆点/进度条等多种加载样式\n  * 全屏遮罩和内联加载器\n  * 支持自定义颜色和大小\n\n集成改进:\n- App.jsx: 集成ToastProvider和ScrollToTop到主应用\n- 创建详细的使用指南文档（UX_IMPROVEMENTS_GUIDE.md）\n\n技术亮点:\n- 所有组件支持可访问性（ARIA标签、键盘导航）\n- 使用Framer Motion实现流畅动画\n- 遵循项目设计系统保持一致性\n- 性能优化（懒加载、React.memo）\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(find:*)",
+      "Bash(read:*)",
+      "Bash(response=\"y\")",
+      "Bash(awk:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
