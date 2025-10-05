@@ -10,6 +10,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/common/LoadingSpinner';
+import { ToastProvider } from './components/common/Toast';
+import ScrollToTop from './components/common/ScrollToTop';
 
 // 懒加载组件以优化首屏加载性能
 const WelcomePage = lazy(() => import('./components/WelcomePage'));
@@ -46,10 +48,12 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <NotificationProvider>
-        <AuthProvider>
-          <Router>
-            <Routes>
+      <ToastProvider>
+        <NotificationProvider>
+          <AuthProvider>
+            <Router>
+              <ScrollToTop />
+              <Routes>
               {/* Public routes */}
               <Route path="/" element={<SuspenseWrapper><WelcomePage /></SuspenseWrapper>} />
               <Route path="/login" element={<SuspenseWrapper><LoginPage /></SuspenseWrapper>} />
@@ -107,10 +111,11 @@ function App() {
 
               {/* Catch all route */}
               <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Router>
-        </AuthProvider>
-      </NotificationProvider>
+              </Routes>
+            </Router>
+          </AuthProvider>
+        </NotificationProvider>
+      </ToastProvider>
     </ErrorBoundary>
   );
 }
