@@ -40,9 +40,32 @@ async def call_openrouter_api(api_key: str, prompt: str, system_message: str = N
                 detail=f"Failed to call AI service: {str(e)}"
             )
         except httpx.HTTPStatusError as e:
+            # 将上游错误信息更多地暴露给前端，帮助诊断（例如 Claude Code 限制）。
+            detail_text = None
+            try:
+                error_json = e.response.json()
+                error_msg = error_json.get("error", {})
+                if isinstance(error_msg, dict):
+                    detail_text = error_msg.get("message", str(error_msg))
+                else:
+                    detail_text = str(error_msg)
+                
+                # 检测 Claude Code 限制错误
+                if "only authorized for use with Claude Code" in detail_text:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=(
+                            "API密钥错误：你使用的是Claude Code专用密钥，无法用于其他API调用。"
+                            "请到OpenRouter.ai获取以'sk-or-'开头的正确密钥。"
+                        )
+                    )
+                    
+            except Exception:
+                detail_text = e.response.text
+                
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"AI service error: {e.response.status_code}"
+                detail=f"AI服务错误 ({e.response.status_code}): {detail_text}"
             )
 
 @router.post("/process", response_model=AIResponse)
@@ -54,6 +77,14 @@ async def process_ai_request(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="OpenRouter API key not configured. Please set it in settings."
+        )
+    if not current_user.openrouter_api_key.startswith("sk-or-"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "无效的 OpenRouter API 密钥。请在设置中保存以 sk-or- 开头的密钥。"
+                "Claude Code/Anthropic 控制台的密钥无法在此使用。"
+            )
         )
     
     # 根据不同的AI动作构建prompt

@@ -114,9 +114,46 @@ npm run dev
 
 ### 5. OpenRouter API配置
 
-1. 访问 [OpenRouter.ai](https://openrouter.ai) 注册账号
-2. 获取API密钥
-3. 在应用设置页面中配置API密钥
+**重要提醒：请务必使用 OpenRouter 密钥，不要使用 Claude Code 专用密钥！**
+
+#### 正确的配置步骤：
+
+1. **注册 OpenRouter 账号**
+   - 访问 [OpenRouter.ai](https://openrouter.ai) 
+   - 注册新账号或登录现有账号
+
+2. **购买积分**
+   - 进入 Credits 页面
+   - 购买所需的积分（建议先购买少量测试）
+
+3. **创建 API 密钥**
+   - 进入 Keys 页面
+   - 点击 "Create Key" 创建新密钥
+   - **确保密钥以 `sk-or-` 开头**
+
+4. **配置密钥**
+   - 在应用设置页面中粘贴密钥
+   - 点击保存
+
+#### 常见错误及解决方案：
+
+❌ **错误**: "This credential is only authorized for use with Claude Code"
+
+**原因**: 你使用了 Claude Code 专用密钥，它只能在 Claude Code 中使用。
+
+**解决方案**:
+- 不要使用从 Anthropic/Claude Console 获取的密钥
+- 必须使用 OpenRouter.ai 生成的密钥
+- 确保密钥格式为 `sk-or-xxxxxxxxxx`
+
+#### 测试工具
+
+你可以使用项目根目录下的 `test-api-key.html` 文件来测试你的 API 密钥是否正确配置：
+
+```bash
+# 在浏览器中打开测试页面
+open test-api-key.html
+```
 
 ## 使用指南
 

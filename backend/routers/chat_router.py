@@ -31,9 +31,31 @@ async def call_openrouter_streaming(api_key: str, messages: List[dict], model: s
             )
             
             if response.status_code != 200:
+                # 透出更多错误信息，便于识别凭证受限等问题
+                try:
+                    err = response.json()
+                    error_msg = err.get("error", {})
+                    if isinstance(error_msg, dict):
+                        detail_text = error_msg.get("message", str(error_msg))
+                    else:
+                        detail_text = str(error_msg)
+                    
+                    # 检测 Claude Code 限制错误
+                    if "only authorized for use with Claude Code" in detail_text:
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=(
+                                "API密钥错误：你使用的是Claude Code专用密钥，无法用于其他API调用。"
+                                "请到OpenRouter.ai获取以'sk-or-'开头的正确密钥。"
+                            )
+                        )
+                        
+                except Exception:
+                    detail_text = response.text
+                    
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"AI service error: {response.status_code}"
+                    detail=f"AI服务错误 ({response.status_code}): {detail_text}"
                 )
             
             async for line in response.aiter_lines():
@@ -81,6 +103,14 @@ async def quick_chat(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="请先在设置中配置你的 OpenRouter API 密钥"
+        )
+    if not current_user.openrouter_api_key.startswith("sk-or-"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "无效的 OpenRouter API 密钥。请在设置中保存以 sk-or- 开头的密钥。"
+                "Claude Code/Anthropic 控制台的密钥无法在此使用。"
+            )
         )
     
     messages = [{"role": "user", "content": chat_request.message}]

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+import re
 from database_sqlite import user_repo
 from auth import get_current_user
 from models import User, UserUpdate
@@ -15,7 +16,18 @@ async def update_user_profile(
     if user_update.full_name is not None:
         update_data["full_name"] = user_update.full_name
     if user_update.openrouter_api_key is not None:
-        update_data["openrouter_api_key"] = user_update.openrouter_api_key
+        key = (user_update.openrouter_api_key or "").strip()
+        # 仅允许 OpenRouter 密钥（通常以 sk-or- 开头）。
+        # 来自 Anthropic/Claude Code 的密钥或其他提供商的密钥将被拒绝，以避免后续 400 错误。
+        if key and not key.startswith("sk-or-"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "无效的 OpenRouter API 密钥。请使用以 sk-or- 开头的 OpenRouter 密钥。"
+                    "注意：Claude Code/Anthropic 控制台生成的密钥不能用于本应用。"
+                ),
+            )
+        update_data["openrouter_api_key"] = key
     
     if not update_data:
         return current_user

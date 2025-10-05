@@ -16,6 +16,7 @@ const SettingsPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState(''); // 'success' or 'error'
+  const [keyWarning, setKeyWarning] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -23,6 +24,14 @@ const SettingsPage = () => {
       [e.target.name]: e.target.value,
     });
     setMessage('');
+    if (e.target.name === 'openrouter_api_key') {
+      const value = (e.target.value || '').trim();
+      if (value && !value.startsWith('sk-or-')) {
+        setKeyWarning('这看起来不像是 OpenRouter 密钥（应以 sk-or- 开头）。Claude Code/Anthropic 控制台的密钥无法在此使用。');
+      } else {
+        setKeyWarning('');
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -111,23 +120,68 @@ const SettingsPage = () => {
                   placeholder="Enter your OpenRouter API key"
                   leftIcon={<Key className="h-5 w-5" />}
                 />
-                  <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-start space-x-2">
-                      <Shield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                      <div className="text-sm text-blue-800">
-                        <p className="font-medium mb-1">About OpenRouter API Key</p>
-                        <p>
-                          Your API key is required to use AI features. Get your key from{' '}
-                          <a
-                            href="https://openrouter.ai"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-medium underline hover:no-underline"
-                          >
-                            OpenRouter.ai
-                          </a>
-                          . Your key is stored securely and only used for your AI requests.
-                        </p>
+              {keyWarning && (
+                <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
+                  {keyWarning}
+                </div>
+              )}
+                  <div className="mt-2 space-y-3">
+                    {/* 错误提示 */}
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex items-start space-x-2">
+                        <div className="text-red-600 text-lg">❌</div>
+                        <div className="text-sm text-red-800">
+                          <p className="font-medium mb-1">Claude Code 密钥错误</p>
+                          <p className="mb-2">
+                            如果你看到错误："This credential is only authorized for use with Claude Code"
+                          </p>
+                          <p>
+                            这说明你使用了 Claude Code 专用密钥，它不能用于其他 API 调用。
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 正确做法 */}
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-start space-x-2">
+                        <div className="text-green-600 text-lg">✅</div>
+                        <div className="text-sm text-green-800">
+                          <p className="font-medium mb-2">正确的设置步骤</p>
+                          <ol className="space-y-1 list-decimal list-inside">
+                            <li>
+                              访问{' '}
+                              <a
+                                href="https://openrouter.ai"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-medium underline hover:no-underline"
+                              >
+                                OpenRouter.ai
+                              </a>
+                              {' '}注册账号
+                            </li>
+                            <li>在 Credits 页面购买积分</li>
+                            <li>在 Keys 页面创建新的 API 密钥</li>
+                            <li>确保密钥以 <code className="bg-green-100 px-1 rounded font-mono">sk-or-</code> 开头</li>
+                            <li>将密钥粘贴到上方输入框中</li>
+                          </ol>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 提示信息 */}
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start space-x-2">
+                        <div className="text-blue-600 text-lg">💡</div>
+                        <div className="text-sm text-blue-800">
+                          <p className="font-medium mb-1">关于 OpenRouter</p>
+                          <p>
+                            OpenRouter 提供多种 AI 模型的统一访问，包括 Claude、GPT、Gemini 等。
+                            你只需要一个 OpenRouter 密钥就能使用所有支持的模型。
+                            你的密钥会被安全存储，仅用于你的 AI 请求。
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
