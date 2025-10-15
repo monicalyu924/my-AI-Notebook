@@ -1,5 +1,5 @@
-import React from 'react';
-import { Search, Plus, Settings, LogOut, FileText, Star, Tag, CheckSquare, MessageCircle, Clock, Kanban, Brain, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Plus, Settings, LogOut, FileText, Star, Tag, CheckSquare, MessageCircle, Clock, Kanban, Brain, Sparkles, BarChart3, SlidersHorizontal } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotes } from '../../context/NotesContext';
 import { useTodos } from '../../context/TodoContext';
@@ -7,12 +7,16 @@ import { useFolders } from '../../context/FolderContext';
 import { Link } from 'react-router-dom';
 import EnhancedFolderTree from '../folders/EnhancedFolderTree';
 import { Button, Input } from '../atlassian-ui';
+import TagManager from '../tags/TagManager';
+import AdvancedSearchPanel from '../search/AdvancedSearchPanel';
 
 const Sidebar = ({ currentView, onViewChange }) => {
   const { logout, user } = useAuth();
-  const { createNote, searchTerm, setSearchTerm, currentFolderId } = useNotes();
+  const { createNote, searchTerm, setSearchTerm, currentFolderId, setNotes } = useNotes();
   const { setSelectedTodo, setIsCreating } = useTodos();
   const { selectedFolder } = useFolders();
+  const [showTagManager, setShowTagManager] = useState(false);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
 
   const handleNewNote = async () => {
     await createNote({
@@ -33,6 +37,14 @@ const Sidebar = ({ currentView, onViewChange }) => {
     setIsCreating(true);
   };
 
+  const handleAdvancedSearchResults = (results) => {
+    // 更新笔记列表以显示搜索结果
+    if (setNotes && currentView === 'notes') {
+      setNotes(results);
+    }
+    setShowAdvancedSearch(false);
+  };
+
   return (
     <div className="w-64 trello-sidebar flex flex-col h-full">
       {/* User info and actions */}
@@ -49,6 +61,13 @@ const Sidebar = ({ currentView, onViewChange }) => {
             </div>
           </div>
           <div className="flex space-x-1">
+            <button
+              onClick={() => setShowTagManager(true)}
+              className="p-1 text-gray-500 hover:text-gray-700 rounded-lg transition-colors"
+              title="标签管理"
+            >
+              <Tag className="h-4 w-4" />
+            </button>
             <Link
               to="/settings"
               className="p-1 text-gray-500 hover:text-gray-700 rounded-lg transition-colors"
@@ -120,12 +139,12 @@ const Sidebar = ({ currentView, onViewChange }) => {
           </button>
         </div>
         
-        <div className="grid grid-cols-2 gap-1 p-1 bg-white/60 backdrop-blur-sm rounded-xl mb-4">
+        <div className="grid grid-cols-3 gap-1 p-1 bg-white/60 backdrop-blur-sm rounded-xl mb-4">
           <button
             onClick={() => onViewChange('chat')}
             className={`flex items-center justify-center px-2 py-2 text-xs rounded-lg transition-all ${
-              currentView === 'chat' 
-                ? 'bg-white text-trello-600 shadow-trello-card font-medium' 
+              currentView === 'chat'
+                ? 'bg-white text-trello-600 shadow-trello-card font-medium'
                 : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
             }`}
           >
@@ -135,32 +154,57 @@ const Sidebar = ({ currentView, onViewChange }) => {
           <button
             onClick={() => onViewChange('pomodoro')}
             className={`flex items-center justify-center px-2 py-2 text-xs rounded-lg transition-all ${
-              currentView === 'pomodoro' 
-                ? 'bg-white text-trello-600 shadow-trello-card font-medium' 
+              currentView === 'pomodoro'
+                ? 'bg-white text-trello-600 shadow-trello-card font-medium'
                 : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
             }`}
           >
             <Clock className="h-3 w-3 mr-1" />
             番茄钟
           </button>
+          <button
+            onClick={() => onViewChange('statistics')}
+            className={`flex items-center justify-center px-2 py-2 text-xs rounded-lg transition-all ${
+              currentView === 'statistics'
+                ? 'bg-white text-trello-600 shadow-trello-card font-medium'
+                : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
+            }`}
+            title="笔记统计"
+          >
+            <BarChart3 className="h-3 w-3 mr-1" />
+            统计
+          </button>
         </div>
 
         {/* Search */}
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-gray-400" />
+        <div className="space-y-2">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder={
+                currentView === 'notes' ? "搜索笔记..." :
+                currentView === 'todos' ? "搜索待办事项..." :
+                "搜索对话..."
+              }
+              className="w-full pl-10 pr-3 py-3 bg-white/80 backdrop-blur-sm border border-white/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-trello-500 focus:border-trello-300 transition-all shadow-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          <input
-            type="text"
-            placeholder={
-              currentView === 'notes' ? "搜索笔记..." : 
-              currentView === 'todos' ? "搜索待办事项..." : 
-              "搜索对话..."
-            }
-            className="w-full pl-10 pr-3 py-3 bg-white/80 backdrop-blur-sm border border-white/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-trello-500 focus:border-trello-300 transition-all shadow-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+
+          {/* 高级搜索按钮 */}
+          {currentView === 'notes' && (
+            <button
+              onClick={() => setShowAdvancedSearch(true)}
+              className="w-full flex items-center justify-center px-3 py-2 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" />
+              高级搜索
+            </button>
+          )}
         </div>
       </div>
 
@@ -319,6 +363,18 @@ const Sidebar = ({ currentView, onViewChange }) => {
           ) : null}
         </div>
       </nav>
+
+      {/* 标签管理器模态框 */}
+      {showTagManager && <TagManager onClose={() => setShowTagManager(false)} />}
+
+      {/* 高级搜索面板 */}
+      {showAdvancedSearch && (
+        <AdvancedSearchPanel
+          isOpen={showAdvancedSearch}
+          onClose={() => setShowAdvancedSearch(false)}
+          onResultsFound={handleAdvancedSearchResults}
+        />
+      )}
     </div>
   );
 };

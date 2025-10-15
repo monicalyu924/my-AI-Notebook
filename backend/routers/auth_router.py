@@ -24,15 +24,16 @@ async def register(user: UserCreate):
         created_user = user_repo.create_user(
             email=user.email,
             password_hash=hashed_password,
-            full_name=user.full_name
+            full_name=user.full_name,
+            role=user.role  # 支持创建管理员账户
         )
-        
+
         # Create access token
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
             data={"sub": user.email}, expires_delta=access_token_expires
         )
-        
+
         return {"access_token": access_token, "token_type": "bearer"}
     except Exception as e:
         raise HTTPException(

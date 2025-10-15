@@ -2,11 +2,12 @@ import time
 import logging
 import hashlib
 import json
-from typing import Callable, Optional
-from fastapi import Request, Response
+from typing import Callable, Optional, List, Set
+from fastapi import Request, Response, HTTPException, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
+from datetime import datetime
 import asyncio
 
 # 配置日志
@@ -301,25 +302,195 @@ class CompressionMiddleware(BaseHTTPMiddleware):
         
         return response
 
+# ===== RBAC权限系统 =====
+
+class RBACChecker:
+    """RBAC权限检查器"""
+
+    def __init__(self):
+        self._cache = {}  # 缓存用户权限
+        self._cache_ttl = 300  # 缓存5分钟
+
+    def _get_cache_key(self, user_id: str) -> str:
+        """生成缓存键"""
+        return f"rbac:user:{user_id}"
+
+    def _is_cache_valid(self, cache_key: str) -> bool:
+        """检查缓存是否有效"""
+        if cache_key not in self._cache:
+            return False
+
+        cached_time = self._cache[cache_key].get('timestamp', 0)
+        return time.time() - cached_time < self._cache_ttl
+
+    def clear_user_cache(self, user_id: str):
+        """清除用户权限缓存"""
+        cache_key = self._get_cache_key(user_id)
+        if cache_key in self._cache:
+            del self._cache[cache_key]
+
+    def get_user_permissions(self, user_id: str) -> Set[str]:
+        """
+        获取用户的所有权限
+        包括通过角色获得的权限和直接授予的权限
+        """
+        from database_sqlite import get_connection
+
+        cache_key = self._get_cache_key(user_id)
+
+        # 检查缓存
+        if self._is_cache_valid(cache_key):
+            return self._cache[cache_key]['permissions']
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        permissions = set()
+
+        try:
+            # 1. 获取用户通过角色获得的权限
+            cursor.execute('''
+                SELECT DISTINCT p.name
+                FROM user_roles ur
+                JOIN role_permissions rp ON ur.role_id = rp.role_id
+                JOIN permissions p ON rp.permission_id = p.id
+                WHERE ur.user_id = ?
+                AND (ur.expires_at IS NULL OR ur.expires_at > ?)
+            ''', (user_id, datetime.utcnow().isoformat() + 'Z'))
+
+            for row in cursor.fetchall():
+                permissions.add(row['name'])
+
+            # 2. 获取用户直接被授予的权限
+            cursor.execute('''
+                SELECT p.name
+                FROM user_permissions up
+                JOIN permissions p ON up.permission_id = p.id
+                WHERE up.user_id = ?
+                AND (up.expires_at IS NULL OR up.expires_at > ?)
+            ''', (user_id, datetime.utcnow().isoformat() + 'Z'))
+
+            for row in cursor.fetchall():
+                permissions.add(row['name'])
+
+            # 缓存结果
+            self._cache[cache_key] = {
+                'permissions': permissions,
+                'timestamp': time.time()
+            }
+
+        finally:
+            conn.close()
+
+        return permissions
+
+    def get_user_roles(self, user_id: str) -> List[dict]:
+        """获取用户的所有角色"""
+        from database_sqlite import get_connection
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute('''
+                SELECT r.id, r.name, r.display_name, r.level, ur.assigned_at, ur.expires_at
+                FROM user_roles ur
+                JOIN roles r ON ur.role_id = r.id
+                WHERE ur.user_id = ?
+                AND (ur.expires_at IS NULL OR ur.expires_at > ?)
+                ORDER BY r.level DESC
+            ''', (user_id, datetime.utcnow().isoformat() + 'Z'))
+
+            roles = [dict(row) for row in cursor.fetchall()]
+            return roles
+
+        finally:
+            conn.close()
+
+    def has_permission(self, user_id: str, permission: str) -> bool:
+        """检查用户是否拥有指定权限"""
+        permissions = self.get_user_permissions(user_id)
+        return permission in permissions
+
+    def has_any_permission(self, user_id: str, permissions: List[str]) -> bool:
+        """检查用户是否拥有任一权限"""
+        user_permissions = self.get_user_permissions(user_id)
+        return any(perm in user_permissions for perm in permissions)
+
+    def has_all_permissions(self, user_id: str, permissions: List[str]) -> bool:
+        """检查用户是否拥有所有权限"""
+        user_permissions = self.get_user_permissions(user_id)
+        return all(perm in user_permissions for perm in permissions)
+
+    def has_role(self, user_id: str, role_name: str) -> bool:
+        """检查用户是否拥有指定角色"""
+        roles = self.get_user_roles(user_id)
+        return any(role['name'] == role_name for role in roles)
+
+    def get_highest_role_level(self, user_id: str) -> int:
+        """获取用户最高角色级别"""
+        roles = self.get_user_roles(user_id)
+        if not roles:
+            return 0
+        return max(role['level'] for role in roles)
+
+    def can_access_resource(self, user_id: str, resource_owner_id: str,
+                          required_permission: str) -> bool:
+        """
+        检查用户是否可以访问资源
+        - 如果是资源所有者,允许访问
+        - 如果拥有所需权限,允许访问
+        """
+        if user_id == resource_owner_id:
+            return True
+
+        return self.has_permission(user_id, required_permission)
+
+# 全局RBAC检查器实例
+rbac_checker = RBACChecker()
+
+class RBACMiddleware(BaseHTTPMiddleware):
+    """RBAC权限检查中间件"""
+
+    def __init__(self, app: ASGIApp):
+        super().__init__(app)
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        # 将RBAC检查器添加到请求状态中,供后续使用
+        request.state.rbac = rbac_checker
+
+        # 处理请求
+        response = await call_next(request)
+
+        return response
+
 # 健康检查端点
 async def health_check_detailed():
     """详细的健康检查"""
-    from database_optimized import db_pool, cache_manager
-    
-    health_info = {
-        "status": "healthy",
-        "timestamp": time.time(),
-        "database": {
-            "connections": {
-                "available": len(db_pool.connections),
-                "used": len(db_pool.used_connections),
-                "max": db_pool.max_connections
+    try:
+        from database_optimized import db_pool, cache_manager
+
+        health_info = {
+            "status": "healthy",
+            "timestamp": time.time(),
+            "database": {
+                "connections": {
+                    "available": len(db_pool.connections),
+                    "used": len(db_pool.used_connections),
+                    "max": db_pool.max_connections
+                }
+            },
+            "cache": {
+                "size": len(cache_manager.cache),
+                "max_size": cache_manager.max_size
             }
-        },
-        "cache": {
-            "size": len(cache_manager.cache),
-            "max_size": cache_manager.max_size
         }
-    }
-    
+    except ImportError:
+        # 如果没有优化的数据库连接池,使用基础版本
+        health_info = {
+            "status": "healthy",
+            "timestamp": time.time(),
+            "message": "使用基础数据库连接"
+        }
+
     return health_info

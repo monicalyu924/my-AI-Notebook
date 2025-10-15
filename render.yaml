@@ -1,0 +1,25 @@
+services:
+  # FastAPI后端服务
+  - type: web
+    name: ai-notebook-backend
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_TYPE
+        value: supabase
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 30
+      - key: PYTHON_VERSION
+        value: 3.9.18

@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNotes } from '../../context/NotesContext';
 import { useProjects } from '../../context/ProjectContext';
 import { useTodos } from '../../context/TodoContext';
-import { Brain, Target, Clock, TrendingUp, Calendar, FileText, CheckCircle2, Users, Settings, BarChart3 } from 'lucide-react';
+import { Brain, Target, Clock, TrendingUp, Calendar, FileText, CheckCircle2, Users, Settings, BarChart3, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 function WorkspaceDashboard({ onViewChange }) {
@@ -298,6 +298,27 @@ function WorkspaceDashboard({ onViewChange }) {
                 </div>
               </button>
             </div>
+
+            {/* 系统管理 - 仅管理员可见 */}
+            {user?.role === 'admin' && (
+              <div className="group">
+                <button
+                  onClick={() => onViewChange('admin')}
+                  className="w-full p-6 bg-white rounded-2xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300 text-left group-hover:scale-105"
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-purple-100 transition-colors">
+                      <Shield className="w-8 h-8 text-purple-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">系统管理</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">用户管理和系统监控</p>
+                    <div className="mt-3 text-xs text-purple-600 font-medium">
+                      管理员专属
+                    </div>
+                  </div>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

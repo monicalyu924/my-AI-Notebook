@@ -3,11 +3,17 @@ from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 
+# User roles
+class UserRole(str, Enum):
+    admin = "admin"
+    user = "user"
+
 # User models
 class UserCreate(BaseModel):
     email: str
     password: str
     full_name: Optional[str] = None
+    role: UserRole = UserRole.user  # 默认为普通用户
 
 class UserLogin(BaseModel):
     email: str
@@ -17,6 +23,7 @@ class User(BaseModel):
     id: str
     email: str
     full_name: Optional[str] = None
+    role: UserRole
     openrouter_api_key: Optional[str] = None
     created_at: datetime
     updated_at: datetime
@@ -24,6 +31,34 @@ class User(BaseModel):
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     openrouter_api_key: Optional[str] = None
+    role: Optional[UserRole] = None  # 只有管理员可以修改角色
+
+# Admin models
+class UserListResponse(BaseModel):
+    """管理员查看用户列表"""
+    id: str
+    email: str
+    full_name: Optional[str] = None
+    role: UserRole
+    created_at: datetime
+    updated_at: datetime
+    notes_count: int = 0
+    todos_count: int = 0
+
+class AdminUserUpdate(BaseModel):
+    """管理员更新用户信息"""
+    full_name: Optional[str] = None
+    role: Optional[UserRole] = None
+    openrouter_api_key: Optional[str] = None
+
+class SystemStats(BaseModel):
+    """系统统计信息"""
+    total_users: int
+    total_notes: int
+    total_todos: int
+    total_projects: int
+    admin_users: int
+    regular_users: int
 
 # Folder models
 class FolderCreate(BaseModel):
@@ -319,3 +354,60 @@ class ListWithCards(BaseModel):
 
 # 更新 forward reference
 BoardWithData.model_rebuild()
+
+# Share models (分享功能)
+class SharePermission(str, Enum):
+    view_only = "view_only"  # 仅查看
+    can_comment = "can_comment"  # 可评论
+
+class NoteShareCreate(BaseModel):
+    note_id: str
+    permission: SharePermission = SharePermission.view_only
+    expires_at: Optional[datetime] = None  # 过期时间，None表示永久有效
+    password: Optional[str] = None  # 可选的访问密码
+
+class NoteShare(BaseModel):
+    id: str
+    note_id: str
+    user_id: str  # 分享者ID
+    share_token: str  # 唯一分享token
+    permission: SharePermission
+    expires_at: Optional[datetime] = None
+    password: Optional[str] = None
+    view_count: int = 0  # 查看次数
+    created_at: datetime
+    updated_at: datetime
+
+class NoteSharePublic(BaseModel):
+    """公开分享信息（不包含敏感数据）"""
+    id: str
+    note_id: str
+    permission: SharePermission
+    view_count: int
+    created_at: datetime
+
+# Comment models (评论功能)
+class CommentCreate(BaseModel):
+    content: str
+    author_name: Optional[str] = "匿名"  # 游客评论时的昵称
+    author_email: Optional[str] = None
+
+class CommentUpdate(BaseModel):
+    content: Optional[str] = None
+
+class Comment(BaseModel):
+    id: str
+    note_id: str
+    share_token: str  # 关联的分享token
+    content: str
+    author_name: str
+    author_email: Optional[str] = None
+    user_id: Optional[str] = None  # 如果是登录用户评论
+    created_at: datetime
+    updated_at: datetime
+
+class SharedNoteView(BaseModel):
+    """分享笔记的公开视图"""
+    note: Note
+    share_info: NoteSharePublic
+    comments: List[Comment]

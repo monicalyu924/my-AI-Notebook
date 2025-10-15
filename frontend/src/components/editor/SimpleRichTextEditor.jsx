@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { 
-  Bold, 
-  Italic, 
-  Underline, 
+import {
+  Bold,
+  Italic,
+  Underline,
   Strikethrough,
   List,
   ListOrdered,
@@ -20,8 +20,11 @@ import {
   Palette,
   Highlighter,
   Undo,
-  Redo
+  Redo,
+  Table
 } from 'lucide-react';
+import CodeBlockModal from './CodeBlockModal';
+import TableInsertModal from './TableInsertModal';
 
 const SimpleRichTextEditor = ({ 
   value = '', 
@@ -34,6 +37,8 @@ const SimpleRichTextEditor = ({
   const [isInitialized, setIsInitialized] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [colorPickerType, setColorPickerType] = useState('text'); // 'text' or 'background'
+  const [showCodeBlockModal, setShowCodeBlockModal] = useState(false);
+  const [showTableModal, setShowTableModal] = useState(false);
 
   // 动态调整编辑器高度
   const adjustEditorHeight = useCallback(() => {
@@ -126,6 +131,22 @@ const SimpleRichTextEditor = ({
     }
   }, [execCommand, handleInput]);
 
+  // 插入链接 - 移到这里，在handleKeyDown之前定义
+  const insertLink = useCallback(() => {
+    const url = prompt('请输入链接地址:', 'https://');
+    if (url) {
+      execCommand('createLink', url);
+    }
+  }, [execCommand]);
+
+  // 插入图片 - 移到这里，在handleKeyDown之前定义
+  const insertImage = useCallback(() => {
+    const url = prompt('请输入图片地址:', 'https://');
+    if (url) {
+      insertHTML(`<img src="${url}" alt="图片" style="max-width: 100%; height: auto;" />`);
+    }
+  }, [insertHTML]);
+
   // 工具栏按钮
   const ToolButton = ({ icon: Icon, title, onClick, isActive = false }) => (
     <button
@@ -133,8 +154,8 @@ const SimpleRichTextEditor = ({
       onClick={onClick}
       title={title}
       className={`p-2 rounded-lg transition-colors ${
-        isActive 
-          ? 'bg-blue-100 text-blue-600' 
+        isActive
+          ? 'bg-blue-100 text-blue-600'
           : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
       }`}
     >
@@ -145,44 +166,53 @@ const SimpleRichTextEditor = ({
   // 处理键盘快捷键
   const handleKeyDown = useCallback((e) => {
     if (e.ctrlKey || e.metaKey) {
-      switch (e.key) {
-        case 's':
-          e.preventDefault();
-          if (onSave) onSave();
-          break;
-        case 'b':
-          e.preventDefault();
-          execCommand('bold');
-          break;
-        case 'i':
-          e.preventDefault();
-          execCommand('italic');
-          break;
-        case 'u':
-          e.preventDefault();
-          execCommand('underline');
-          break;
-        default:
-          break;
+      // Ctrl+Shift combinations
+      if (e.shiftKey) {
+        switch (e.key) {
+          case 'C':
+            e.preventDefault();
+            setShowCodeBlockModal(true);
+            break;
+          case 'T':
+            e.preventDefault();
+            setShowTableModal(true);
+            break;
+          case 'K':
+            e.preventDefault();
+            insertLink();
+            break;
+          default:
+            break;
+        }
+      } else {
+        // Ctrl combinations (without Shift)
+        switch (e.key) {
+          case 's':
+            e.preventDefault();
+            if (onSave) onSave();
+            break;
+          case 'b':
+            e.preventDefault();
+            execCommand('bold');
+            break;
+          case 'i':
+            e.preventDefault();
+            execCommand('italic');
+            break;
+          case 'u':
+            e.preventDefault();
+            execCommand('underline');
+            break;
+          case 'k':
+            e.preventDefault();
+            insertLink();
+            break;
+          default:
+            break;
+        }
       }
     }
-  }, [execCommand, onSave]);
-
-  // 插入链接
-  const insertLink = useCallback(() => {
-    const url = prompt('请输入链接地址:', 'https://');
-    if (url) {
-      execCommand('createLink', url);
-    }
-  }, [execCommand]);
-
-  // 插入图片
-  const insertImage = useCallback(() => {
-    const url = prompt('请输入图片地址:', 'https://');
-    if (url) {
-      insertHTML(`<img src="${url}" alt="图片" style="max-width: 100%; height: auto;" />`);
-    }
-  }, [insertHTML]);
+  }, [execCommand, onSave, insertLink]);
 
   // 预设颜色
   const presetColors = [
@@ -330,7 +360,17 @@ const SimpleRichTextEditor = ({
             title="引用"
             onClick={() => execCommand('formatBlock', 'blockquote')}
           />
-          
+          <ToolButton
+            icon={Code}
+            title="插入代码块 (Ctrl+Shift+C)"
+            onClick={() => setShowCodeBlockModal(true)}
+          />
+          <ToolButton
+            icon={Table}
+            title="插入表格 (Ctrl+Shift+T)"
+            onClick={() => setShowTableModal(true)}
+          />
+
           <div className="w-px h-6 bg-gray-300 mx-1" />
           
           {/* 颜色和格式 */}
@@ -407,17 +447,22 @@ const SimpleRichTextEditor = ({
       
       {/* 底部状态栏 */}
       <div className="border-t border-gray-200 bg-gray-50 px-4 py-2 text-xs text-gray-500 flex justify-between items-center">
-        <div className="flex space-x-4">
-          <span>富文本编辑器</span>
-          <span>•</span>
+        <div className="flex flex-wrap gap-x-4 gap-y-1">
+          <span className="font-medium">快捷键:</span>
           <span>Ctrl+S 保存</span>
           <span>•</span>
           <span>Ctrl+B 粗体</span>
           <span>•</span>
           <span>Ctrl+I 斜体</span>
+          <span>•</span>
+          <span>Ctrl+K 链接</span>
+          <span>•</span>
+          <span>Ctrl+Shift+C 代码</span>
+          <span>•</span>
+          <span>Ctrl+Shift+T 表格</span>
         </div>
-        <div>
-          Word风格编辑体验
+        <div className="text-blue-600 font-medium">
+          增强版编辑器
         </div>
       </div>
       
@@ -484,6 +529,21 @@ const SimpleRichTextEditor = ({
           }
         `
       }} />
+
+      {/* 模态框 */}
+      {showCodeBlockModal && (
+        <CodeBlockModal
+          onClose={() => setShowCodeBlockModal(false)}
+          onInsert={(html) => insertHTML(html)}
+        />
+      )}
+
+      {showTableModal && (
+        <TableInsertModal
+          onClose={() => setShowTableModal(false)}
+          onInsert={(html) => insertHTML(html)}
+        />
+      )}
     </div>
   );
 };

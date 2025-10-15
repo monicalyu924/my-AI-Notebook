@@ -155,3 +155,131 @@ async def process_ai_request(
     )
     
     return AIResponse(result=result, action=ai_request.action)
+
+# Phase 3.2 - AI智能助手增强功能
+
+@router.post("/summarize/{note_id}")
+async def summarize_note(note_id: str, current_user: User = Depends(get_current_user)):
+    """智能摘要：为笔记生成简洁摘要"""
+    from database_sqlite import notes_repo
+
+    note = notes_repo.get_note(note_id)
+    if not note or note['user_id'] != current_user.id:
+        raise HTTPException(status_code=404, detail="笔记不存在")
+
+    if not current_user.openrouter_api_key:
+        raise HTTPException(status_code=400, detail="请先配置OpenRouter API Key")
+
+    prompt = f"""请为以下笔记生成一个简洁的摘要（3-5句话）：
+
+标题：{note['title']}
+内容：
+{note['content'][:2000]}  # 限制长度避免token过多
+
+请用中文输出摘要。"""
+
+    summary = await call_openrouter_api(
+        current_user.openrouter_api_key,
+        prompt,
+        "你是一个专业的内容摘要助手。",
+        "anthropic/claude-3-haiku"  # 使用快速模型
+    )
+
+    return {"summary": summary}
+
+@router.get("/recommend")
+async def recommend_notes(current_user: User = Depends(get_current_user)):
+    """内容推荐：基于标签和时间推荐相关笔记"""
+    from database_sqlite import notes_repo
+    from collections import Counter
+
+    all_notes = notes_repo.get_notes_by_user(current_user.id)
+
+    if len(all_notes) < 2:
+        return {"recommendations": []}
+
+    # 统计标签频率
+    tag_counter = Counter()
+    for note in all_notes:
+        if note.get('tags'):
+            tag_counter.update(note['tags'])
+
+    # 获取最常用的标签
+    popular_tags = [tag for tag, _ in tag_counter.most_common(5)]
+
+    # 推荐包含热门标签的笔记
+    recommendations = []
+    for note in all_notes:
+        if note.get('tags'):
+            matching_tags = set(note['tags']) & set(popular_tags)
+            if matching_tags:
+                recommendations.append({
+                    'id': note['id'],
+                    'title': note['title'],
+                    'tags': note['tags'],
+                    'matching_tags': list(matching_tags),
+                    'score': len(matching_tags)
+                })
+
+    # 按匹配度排序
+    recommendations.sort(key=lambda x: x['score'], reverse=True)
+
+    return {"recommendations": recommendations[:10]}
+
+@router.post("/auto-classify/{note_id}")
+async def auto_classify_note(note_id: str, current_user: User = Depends(get_current_user)):
+    """自动分类：AI分析笔记内容并建议标签和文件夹"""
+    from database_sqlite import notes_repo, folders_repo
+
+    note = notes_repo.get_note(note_id)
+    if not note or note['user_id'] != current_user.id:
+        raise HTTPException(status_code=404, detail="笔记不存在")
+
+    if not current_user.openrouter_api_key:
+        raise HTTPException(status_code=400, detail="请先配置OpenRouter API Key")
+
+    # 获取用户的所有文件夹和标签
+    # folders = folders_repo.get_folders_by_user(current_user.id)  # 如果有实现
+    all_notes = notes_repo.get_notes_by_user(current_user.id)
+
+    existing_tags = set()
+    for n in all_notes:
+        if n.get('tags'):
+            existing_tags.update(n['tags'])
+
+    prompt = f"""请分析以下笔记的内容，并建议合适的标签和分类：
+
+标题：{note['title']}
+内容：
+{note['content'][:1500]}
+
+现有标签：{', '.join(list(existing_tags)[:20]) if existing_tags else '无'}
+
+请以JSON格式返回建议：
+{{
+  "suggested_tags": ["标签1", "标签2", "标签3"],
+  "category": "建议的分类（如：工作、学习、生活等）",
+  "reason": "分类理由"
+}}
+
+只返回JSON，不要其他文字。"""
+
+    try:
+        result = await call_openrouter_api(
+            current_user.openrouter_api_key,
+            prompt,
+            "你是一个内容分类专家。",
+            "anthropic/claude-3-haiku"
+        )
+
+        import json
+        # 尝试解析JSON
+        suggestions = json.loads(result)
+        return suggestions
+    except Exception as e:
+        # 如果解析失败，返回默认建议
+        return {
+            "suggested_tags": list(existing_tags)[:3] if existing_tags else [],
+            "category": "未分类",
+            "reason": f"自动分类失败: {str(e)}"
+        }

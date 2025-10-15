@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth_router, notes_router, ai_router, user_router, todos_router, folders_router, chat_router, versions_router, projects_router
+from routers import auth_router, notes_router, ai_router, user_router, todos_router, folders_router, chat_router, versions_router, projects_router, admin_router, tags_router, share_router, export_router, rbac_router
 from database_sqlite import init_database
+from middleware import RBACMiddleware, PerformanceMiddleware
 
 app = FastAPI(
     title="AI Notebook API",
@@ -9,15 +10,21 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# 添加RBAC权限中间件
+app.add_middleware(RBACMiddleware)
+
+# 添加性能监控中间件(可选)
+app.add_middleware(PerformanceMiddleware, slow_request_threshold=1.0)
+
 # 配置CORS - 支持开发环境和生产环境
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000", 
-        "http://localhost:5173", 
-        "http://localhost:5174", 
-        "http://localhost:5175", 
-        "http://localhost:5176", 
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
+        "http://localhost:5176",
         "null",
         # Vercel 生产环境域名 (将在部署后更新具体域名)
         "https://*.vercel.app",
@@ -39,6 +46,11 @@ app.include_router(todos_router.router)
 app.include_router(chat_router.router)
 app.include_router(versions_router.router)
 app.include_router(projects_router.router)
+app.include_router(admin_router.router)  # 管理员路由
+app.include_router(tags_router.router)  # 标签管理路由
+app.include_router(share_router.router)  # 分享和评论路由
+app.include_router(export_router.router)  # 导出功能路由
+app.include_router(rbac_router.router)  # RBAC权限管理路由
 
 @app.get("/")
 async def root():

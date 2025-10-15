@@ -2,8 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNotes } from '../../context/NotesContext';
 import { Save, Eye, Edit3, FileText } from 'lucide-react';
 import AIAssistantPanel from './AIAssistantPanel';
+import AIAssistantToolbar from './AIAssistantToolbar';
 import SimpleRichTextEditor from './SimpleRichTextEditor';
 import EditorStatus from './EditorStatus';
+import SaveStatusIndicator from './SaveStatusIndicator';
+import EnhancedTagInput from '../tags/EnhancedTagInput';
+import ExportMenu from '../notes/ExportMenu';
+import WordCounter from './WordCounter';
 
 const Editor = () => {
   const { selectedNote, updateNote } = useNotes();
@@ -81,10 +86,8 @@ const Editor = () => {
     setHasUnsavedChanges(true);
   };
 
-  const handleTagsChange = (e) => {
-    const tagString = e.target.value;
-    const tagArray = tagString.split(',').map(tag => tag.trim()).filter(tag => tag);
-    setTags(tagArray);
+  const handleTagsChange = (newTags) => {
+    setTags(newTags);
     setHasUnsavedChanges(true);
   };
 
@@ -136,27 +139,29 @@ const Editor = () => {
             placeholder="Note title..."
             className="text-2xl font-bold bg-transparent border-none outline-none flex-1"
           />
-          {hasUnsavedChanges && (
-            <span className="text-sm text-amber-600">Unsaved changes</span>
-          )}
-          {isSaving && (
-            <span className="text-sm text-blue-600">Saving...</span>
-          )}
+          {/* 保存状态指示器 */}
+          <SaveStatusIndicator
+            isSaving={isSaving}
+            hasUnsavedChanges={hasUnsavedChanges}
+            lastSaved={lastSaved}
+          />
         </div>
-        
+
         <div className="flex items-center space-x-2">
+          <ExportMenu noteId={selectedNote?.id} />
+
           <button
             onClick={() => setEditorMode(editorMode === 'rich' ? 'preview' : 'rich')}
             className={`p-2 rounded-lg transition-colors ${
               editorMode === 'preview'
-                ? 'bg-blue-100 text-blue-600' 
+                ? 'bg-blue-100 text-blue-600'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
             title={editorMode === 'preview' ? '编辑模式' : '预览模式'}
           >
             {editorMode === 'preview' ? <Edit3 className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
-          
+
           <button
             onClick={handleSave}
             disabled={!hasUnsavedChanges || isSaving}
@@ -165,12 +170,12 @@ const Editor = () => {
           >
             <Save className="h-4 w-4" />
           </button>
-          
+
           <button
             onClick={() => setShowAIPanel(!showAIPanel)}
             className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-              showAIPanel 
-                ? 'bg-purple-100 text-purple-700' 
+              showAIPanel
+                ? 'bg-purple-100 text-purple-700'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -179,15 +184,32 @@ const Editor = () => {
         </div>
       </div>
 
-      {/* Tags */}
-      <div className="px-4 py-2 border-b border-gray-200">
-        <input
-          type="text"
-          value={tags.join(', ')}
+      {/* Tags - Enhanced */}
+      <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+        <EnhancedTagInput
+          tags={tags}
           onChange={handleTagsChange}
-          placeholder="Tags (comma separated)..."
-          className="w-full text-sm bg-transparent border-none outline-none text-gray-600"
+          text={content}
+          className=""
         />
+      </div>
+
+      {/* AI Assistant Toolbar - Phase 3.2 */}
+      <div className="px-4 py-3 border-b border-gray-100">
+        <AIAssistantToolbar
+          noteId={selectedNote?.id}
+          onUpdate={(updates) => {
+            if (updates.tags) {
+              setTags(updates.tags);
+              setHasUnsavedChanges(true);
+            }
+          }}
+        />
+      </div>
+
+      {/* 字数统计 - 实时显示 */}
+      <div className="px-4 py-2 border-b border-gray-200">
+        <WordCounter content={content} />
       </div>
 
       {/* Content */}

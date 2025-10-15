@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { notesAPI } from '../utils/api';
 import { useAuth } from './AuthContext';
+import { debounce } from '../utils/performance';
 
 const NotesContext = createContext();
 
@@ -19,6 +20,8 @@ export const NotesProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentFolderId, setCurrentFolderId] = useState(null); // 当前文件夹ID
+  const [searchResults, setSearchResults] = useState([]); // 全文搜索结果
+  const [isSearching, setIsSearching] = useState(false); // 是否正在搜索
 
   // Fetch notes when user is authenticated
   useEffect(() => {
@@ -92,12 +95,59 @@ export const NotesProvider = ({ children }) => {
     }
   };
 
-  // Filter notes based on search term
-  const filteredNotes = notes.filter(note =>
-    note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    note.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    note.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // 实际执行搜索的函数
+  const performSearch = async (query) => {
+    if (!query || query.trim() === '') {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await notesAPI.searchNotes(query);
+      setSearchResults(response.data);
+    } catch (error) {
+      console.error('Failed to search notes:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // 防抖搜索 - 使用useCallback和useRef避免重复创建
+  const debouncedSearchRef = useRef(debounce(performSearch, 300));
+
+  // 全文搜索功能（带防抖）
+  const searchNotes = useCallback((query) => {
+    setSearchTerm(query);
+
+    if (!query || query.trim() === '') {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    // 使用防抖搜索
+    debouncedSearchRef.current(query);
+  }, []);
+
+  // 清除搜索
+  const clearSearch = () => {
+    setSearchTerm('');
+    setSearchResults([]);
+    setIsSearching(false);
+  };
+
+  // 如果在搜索模式，使用搜索结果，否则使用本地过滤
+  const filteredNotes = searchTerm && searchResults.length > 0
+    ? searchResults
+    : notes.filter(note =>
+        searchTerm === '' ||
+        note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        note.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        note.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
 
   const value = {
     notes,
@@ -106,6 +156,8 @@ export const NotesProvider = ({ children }) => {
     isLoading,
     searchTerm,
     currentFolderId,
+    searchResults,
+    isSearching,
     setSearchTerm,
     setSelectedNote,
     setCurrentFolderId,
@@ -113,6 +165,8 @@ export const NotesProvider = ({ children }) => {
     createNote,
     updateNote,
     deleteNote,
+    searchNotes,
+    clearSearch,
   };
 
   return (

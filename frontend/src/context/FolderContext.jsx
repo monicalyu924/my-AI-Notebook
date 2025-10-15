@@ -194,8 +194,30 @@ export const FolderProvider = ({ children }) => {
     }
   };
 
-  // 展开/收起文件夹树节点的状态管理
-  const [expandedFolders, setExpandedFolders] = useState(new Set());
+  // 展开/收起文件夹树节点的状态管理（带持久化）
+  const [expandedFolders, setExpandedFolders] = useState(() => {
+    // 从 localStorage 加载折叠状态
+    try {
+      const saved = localStorage.getItem('expandedFolders');
+      if (saved) {
+        const arr = JSON.parse(saved);
+        return new Set(arr);
+      }
+    } catch (error) {
+      console.error('加载文件夹折叠状态失败:', error);
+    }
+    return new Set();
+  });
+
+  // 当 expandedFolders 改变时保存到 localStorage
+  useEffect(() => {
+    try {
+      const arr = Array.from(expandedFolders);
+      localStorage.setItem('expandedFolders', JSON.stringify(arr));
+    } catch (error) {
+      console.error('保存文件夹折叠状态失败:', error);
+    }
+  }, [expandedFolders]);
 
   const toggleFolderExpanded = (folderId) => {
     setExpandedFolders(prev => {

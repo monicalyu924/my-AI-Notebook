@@ -58,11 +58,37 @@ export const notesAPI = {
   createNote: (noteData) => api.post('/notes/', noteData),
   updateNote: (id, noteData) => api.put(`/notes/${id}`, noteData),
   deleteNote: (id) => api.delete(`/notes/${id}`),
+  searchNotes: (query, limit = 50) => api.get('/notes/search/query', {
+    params: { q: query, limit }
+  }),
+  // Phase 3.4 - 高级搜索
+  advancedSearch: (queryParams) => api.get(`/notes/search/advanced?${queryParams}`),
 };
 
 // AI API
 export const aiAPI = {
   processText: (request) => api.post('/ai/process', request),
+  // Phase 3.2 - AI智能助手增强
+  summarizeNote: (noteId) => api.post(`/api/ai/summarize/${noteId}`),
+  getRecommendations: () => api.get('/api/ai/recommend'),
+  autoClassifyNote: (noteId) => api.post(`/api/ai/auto-classify/${noteId}`),
+};
+
+// Export API - Phase 3.3
+export const exportAPI = {
+  exportToPDF: (noteId) => {
+    const token = localStorage.getItem('token');
+    window.open(`${API_BASE_URL}/export/pdf/${noteId}?token=${token}`, '_blank');
+  },
+  exportToHTML: (noteId) => {
+    const token = localStorage.getItem('token');
+    window.open(`${API_BASE_URL}/export/html/${noteId}?token=${token}`, '_blank');
+  },
+  batchExport: (noteIds, format = 'html') =>
+    api.post('/export/batch', noteIds, {
+      params: { format },
+      responseType: 'blob'
+    }),
 };
 
 // User API
@@ -98,6 +124,37 @@ export const chatAPI = {
       body: JSON.stringify({ message, model }),
     });
   },
+};
+
+// Admin API
+export const adminAPI = {
+  getAllUsers: () => api.get('/admin/users'),
+  getUserDetails: (userId) => api.get(`/admin/users/${userId}`),
+  updateUser: (userId, userData) => api.put(`/admin/users/${userId}`, userData),
+  deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
+  getSystemStats: () => api.get('/admin/stats'),
+};
+
+// Tags API
+export const tagsAPI = {
+  // 获取标签统计信息
+  getStats: () => api.get('/tags/stats'),
+
+  // 重命名标签
+  renameTag: (oldTag, newTag) => api.post('/tags/rename', null, {
+    params: { old_tag: oldTag, new_tag: newTag }
+  }),
+
+  // 合并多个标签
+  mergeTags: (sourceTags, targetTag) => api.post('/tags/merge', null, {
+    params: { source_tags: sourceTags.join(','), target_tag: targetTag }
+  }),
+
+  // 删除标签
+  deleteTag: (tag) => api.delete(`/tags/${encodeURIComponent(tag)}`),
+
+  // 获取智能标签建议
+  getSuggestions: (text = '') => api.get('/tags/suggestions', { params: { text } }),
 };
 
 export default api;

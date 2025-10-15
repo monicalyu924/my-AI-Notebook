@@ -42,7 +42,14 @@
       "Bash(read:*)",
       "Bash(response=\"y\")",
       "Bash(awk:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(/dev/null)",
+      "Read(//private/tmp/**)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImV4cCI6MTc1OTY3MTA5MH0.GTKXxn0ATa3FPNXbQ48YEZQIclH7D554Ip25lP7EKqs\" curl -s 'http://localhost:8000/api/auth/me' -H \"Authorization: Bearer $TOKEN\")",
+      "Bash(xargs kill:*)",
+      "Bash(xargs:*)",
+      "Bash(timeout 120 python3:*)",
+      "Bash(./test_full_stack.sh:*)"
     ],
     "deny": [],
     "ask": []

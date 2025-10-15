@@ -10,6 +10,8 @@ import ChatPage from './chat/ChatPage';
 import PomodoroPage from './pomodoro/PomodoroPage';
 import ProjectPage from './project/ProjectPage';
 import WorkspacePage from './workspace/WorkspacePage';
+import NotesStatistics from './notes/NotesStatistics';
+import AdminDashboard from './admin/AdminDashboard';
 import FloatingPomodoroButton from './pomodoro/FloatingPomodoroButton';
 import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
 
@@ -23,8 +25,8 @@ const MainAppPage = ({ currentView = 'workspace', onViewChange }) => {
   };
 
   // 全屏页面，不需要侧边栏
-  const fullScreenViews = ['workspace', 'chat', 'pomodoro', 'projects'];
-  
+  const fullScreenViews = ['workspace', 'chat', 'pomodoro', 'projects', 'statistics', 'admin'];
+
   if (fullScreenViews.includes(currentView)) {
     return (
       <div className="h-screen bg-transparent">
@@ -32,7 +34,9 @@ const MainAppPage = ({ currentView = 'workspace', onViewChange }) => {
         {currentView === 'chat' && <ChatPage onViewChange={handleViewChange} />}
         {currentView === 'pomodoro' && <PomodoroPage onViewChange={handleViewChange} />}
         {currentView === 'projects' && <ProjectPage onViewChange={handleViewChange} />}
-        
+        {currentView === 'statistics' && <NotesStatistics />}
+        {currentView === 'admin' && <AdminDashboard />}
+
         {/* 浮动番茄钟按钮 - 除了番茄钟页面和工作空间外的所有页面都显示 */}
         {currentView !== 'pomodoro' && currentView !== 'workspace' && <FloatingPomodoroButton />}
       </div>

@@ -41,6 +41,7 @@ const EnhancedFolderTree = () => {
   const [newFolderName, setNewFolderName] = useState('');
   const [showMenu, setShowMenu] = useState(null);
   const [dropTarget, setDropTarget] = useState(null);
+  const [draggingFolder, setDraggingFolder] = useState(null); // 正在拖拽的文件夹
   const [showCustomization, setShowCustomization] = useState(false);
   const [customizationFolder, setCustomizationFolder] = useState(null);
   const [showBatchActions, setShowBatchActions] = useState(false);
@@ -229,27 +230,104 @@ const EnhancedFolderTree = () => {
     }
   };
 
-  const handleDrop = async (e, folderId = null) => {
+  const handleDrop = async (e, targetFolderId = null) => {
     e.preventDefault();
+    e.stopPropagation();
     setDropTarget(null);
-    
+    setDraggingFolder(null);
+
     try {
-      const noteData = JSON.parse(e.dataTransfer.getData('text/json'));
-      
-      if (noteData.folder_id === folderId) {
-        return;
-      }
-      
-      const result = await updateNote(noteData.id, {
-        folder_id: folderId
-      });
-      
-      if (result.success) {
-        await fetchNotes(selectedFolder?.id || null);
+      // 尝试解析数据
+      const dataType = e.dataTransfer.types[0];
+
+      // 检查是否是文件夹拖拽
+      if (dataType === 'application/folder') {
+        const folderData = JSON.parse(e.dataTransfer.getData('application/folder'));
+
+        // 防止将文件夹拖到自己或自己的子文件夹
+        if (folderData.id === targetFolderId || isDescendant(folderData.id, targetFolderId)) {
+          console.warn('无法将文件夹移动到自己或其子文件夹中');
+          return;
+        }
+
+        // 如果 parent_id 没有变化，则不需要更新
+        if (folderData.parent_id === targetFolderId) {
+          return;
+        }
+
+        // 更新文件夹的父级
+        const result = await updateFolder(folderData.id, {
+          parent_id: targetFolderId
+        });
+
+        if (result) {
+          console.log('文件夹移动成功');
+        }
+      } else {
+        // 笔记拖拽
+        const noteData = JSON.parse(e.dataTransfer.getData('text/json'));
+
+        if (noteData.folder_id === targetFolderId) {
+          return;
+        }
+
+        const result = await updateNote(noteData.id, {
+          folder_id: targetFolderId
+        });
+
+        if (result.success) {
+          await fetchNotes(selectedFolder?.id || null);
+        }
       }
     } catch (error) {
-      console.error('移动笔记失败:', error);
+      console.error('拖放操作失败:', error);
     }
+  };
+
+  // 检查 folder 是否是 possibleAncestor 的后代
+  const isDescendant = (folderId, possibleAncestorId) => {
+    if (!possibleAncestorId) return false;
+
+    const findInTree = (folders, targetId) => {
+      for (const folder of folders) {
+        if (folder.id === possibleAncestorId) {
+          // 检查 targetId 是否在这个文件夹的子树中
+          return checkInSubtree(folder, targetId);
+        }
+        if (folder.children && folder.children.length > 0) {
+          if (findInTree(folder.children, targetId)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    const checkInSubtree = (folder, targetId) => {
+      if (folder.id === targetId) return true;
+      if (folder.children && folder.children.length > 0) {
+        for (const child of folder.children) {
+          if (checkInSubtree(child, targetId)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    return findInTree(foldersTree, folderId);
+  };
+
+  // 处理文件夹拖拽开始
+  const handleFolderDragStart = (e, folder) => {
+    e.stopPropagation();
+    setDraggingFolder(folder);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('application/folder', JSON.stringify({
+      id: folder.id,
+      name: folder.name,
+      parent_id: folder.parent_id
+    }));
   };
 
   // 扁平化文件夹列表（用于批量操作）
@@ -281,14 +359,19 @@ const EnhancedFolderTree = () => {
     return (
       <div key={folder.id}>
         {/* 文件夹项 */}
-        <div 
+        <div
+          draggable={!showBatchActions && !editingFolder}
+          onDragStart={(e) => handleFolderDragStart(e, folder)}
+          onDragEnd={() => setDraggingFolder(null)}
           className={`group flex items-center py-1 px-2 mx-1 rounded cursor-pointer transition-colors ${
-            showBatchActions 
+            showBatchActions
               ? (isBatchSelected ? 'bg-blue-100 border border-blue-300' : 'hover:bg-gray-50')
-              : isSelected 
+              : isSelected
                 ? getFolderBackgroundColor(folder, true)
                 : getFolderBackgroundColor(folder, false)
-          } ${isDropTarget ? 'bg-green-100 border-2 border-green-300 border-dashed' : ''}`}
+          } ${isDropTarget ? 'bg-green-100 border-2 border-green-300 border-dashed' : ''} ${
+            draggingFolder && draggingFolder.id === folder.id ? 'opacity-50' : ''
+          }`}
           style={{ paddingLeft: `${paddingLeft}px` }}
           onDragOver={(e) => handleDragOver(e, folder.id)}
           onDragLeave={handleDragLeave}
