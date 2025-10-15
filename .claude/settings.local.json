@@ -49,7 +49,13 @@
       "Bash(xargs kill:*)",
       "Bash(xargs:*)",
       "Bash(timeout 120 python3:*)",
-      "Bash(./test_full_stack.sh:*)"
+      "Bash(./test_full_stack.sh:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\n完成Supabase迁移和生产环境部署准备\n\n主要更新:\n- ✅ SQLite → Supabase完整迁移 (7用户 + 25笔记 + 22看板)\n- ✅ 创建数据库抽象层，支持SQLite/Supabase一键切换\n- ✅ 实现RBAC权限系统 (6角色 + 20权限)\n- ✅ 添加字数统计功能示例\n- ✅ 完善部署配置 (Vercel + Railway + Render + Docker)\n\n新增文件:\n- database_supabase.py - Supabase数据访问层\n- migrate_sqlite_to_supabase.py - 数据迁移脚本\n- supabase_schema.sql - PostgreSQL表结构\n- DEPLOYMENT_SUPABASE.md - 部署指南\n- LOCAL_DEVELOPMENT_GUIDE.md - 本地开发指南\n- POST_MIGRATION_SUMMARY.md - 迁移总结\n\n技术改进:\n- 60秒超时 + 3次重试机制\n- UUID主键 + JSONB数据类型\n- RLS权限策略\n- 完整的环境变量配置\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(railway --version)",
+      "Bash(railway login:*)",
+      "Bash(railway variables:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,30 @@
+# Railway环境变量配置
+# 复制以下内容到Railway的Variables设置中
+
+# 数据库类型
+DATABASE_TYPE=supabase
+
+# Supabase配置
+SUPABASE_URL=https://lvwjycoderrjetuzqrdy.supabase.co
+
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2d2p5Y29kZXJyamV0dXpxcmR5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODcxNDMzMywiZXhwIjoyMDc0MjkwMzMzfQ._DTXVOVQLz1mLN9bryqea-lz0Wp1joLNE4H3W-JzoHk
+
+# JWT配置
+SECRET_KEY=NuQTCFQCjJeP4eMK5g3Y6SIZpyVOOVkkafs8EJB_U2g
+
+ALGORITHM=HS256
+
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# 服务器配置
+PORT=8000
+
+PYTHONUNBUFFERED=1
+
+# ============================================
+# Railway项目设置
+# ============================================
+# Root Directory: backend
+# Build Command: pip install -r requirements.txt
+# Start Command: python main.py
+# ============================================
