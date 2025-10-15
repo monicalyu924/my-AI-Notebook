@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一键修复管理员功能</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            max-width: 800px;
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .step {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        .step h3 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .step p {
+            color: #666;
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+        .code-box {
+            background: #1a1a2e;
+            color: #0ff;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .success {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+        .warning {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+        .result {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+        #finalResult {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 一键修复管理员功能</h1>
+            <p>自动检测并修复所有问题</p>
+        </div>
+        
+        <div class="content">
+            <div class="step warning">
+                <h3>
+                    <span>⚠️</span>
+                    <span>重要提醒</span>
+                </h3>
+                <p>1. 确保你已经在 <span class="highlight">Supabase</span> 中将账号角色设置为 admin</p>
+                <p>2. 确保 <span class="highlight">Railway 后端</span> 和 <span class="highlight">Vercel 前端</span> 都已部署完成</p>
+                <p>3. 此工具将清除所有本地缓存并重新获取用户信息</p>
+            </div>
+
+            <button onclick="runFullDiagnostic()" style="background: #3b82f6;">
+                🔍 第1步: 完整诊断
+            </button>
+
+            <div id="diagnosticResult" class="result"></div>
+
+            <button onclick="fixIssues()" style="background: #10b981;">
+                🔧 第2步: 自动修复
+            </button>
+
+            <div id="fixResult" class="result"></div>
+
+            <button onclick="verifyFix()" style="background: #8b5cf6;">
+                ✅ 第3步: 验证修复
+            </button>
+
+            <div id="verifyResult" class="result"></div>
+
+            <div id="finalResult"></div>
+
+            <div class="step" style="margin-top: 30px;">
+                <h3>
+                    <span>📝</span>
+                    <span>手动方法（如果自动修复失败）</span>
+                </h3>
+                <p><strong>在 Supabase SQL Editor 运行：</strong></p>
+                <div class="code-box">UPDATE users 
+SET role = 'admin' 
+WHERE email = 'monicalyu24@163.com';
+
+-- 验证
+SELECT email, role FROM users WHERE email = 'monicalyu24@163.com';</div>
+                <p><strong>然后在应用页面 Console 运行：</strong></p>
+                <div class="code-box">localStorage.clear();
+sessionStorage.clear();
+window.location.href = 'https://ai-notebook-production.vercel.app';</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'https://my-ai-notebook-production.up.railway.app';
+        const FRONTEND_URL = 'https://ai-notebook-production.vercel.app';
+
+        let diagnosticData = {};
+
+        async function runFullDiagnostic() {
+            const resultDiv = document.getElementById('diagnosticResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>🔍 诊断中...</p>';
+
+            let html = '<h3>诊断结果：</h3>';
+            let issues = [];
+
+            // 检查 1: localStorage
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            const token = localStorage.getItem('token');
+
+            html += '<div class="step">';
+            if (user && user.role === 'admin') {
+                html += '<p>✅ localStorage 用户角色: <strong>admin</strong></p>';
+                diagnosticData.localStorageOK = true;
+            } else if (user) {
+                html += `<p>❌ localStorage 用户角色: <strong>${user.role}</strong> (应该是 admin)</p>`;
+                issues.push('localStorage 角色错误');
+                diagnosticData.localStorageOK = false;
+            } else {
+                html += '<p>❌ 未登录</p>';
+                issues.push('未登录');
+                diagnosticData.localStorageOK = false;
+            }
+            html += '</div>';
+
+            // 检查 2: API 连接
+            if (token) {
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/auth/me`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    html += '<div class="step">';
+                    if (response.ok) {
+                        const data = await response.json();
+                        diagnosticData.apiUser = data;
+                        
+                        if (data.role === 'admin') {
+                            html += '<p>✅ API 返回角色: <strong>admin</strong></p>';
+                            diagnosticData.apiOK = true;
+                        } else {
+                            html += `<p>❌ API 返回角色: <strong>${data.role}</strong> (应该是 admin)</p>`;
+                            html += '<p>👉 需要在 Supabase 中设置角色为 admin</p>';
+                            issues.push('Supabase 角色未设置');
+                            diagnosticData.apiOK = false;
+                        }
+                    } else {
+                        html += `<p>❌ API 请求失败: ${response.status}</p>`;
+                        issues.push('API 连接失败');
+                        diagnosticData.apiOK = false;
+                    }
+                    html += '</div>';
+                } catch (error) {
+                    html += '<div class="step">';
+                    html += `<p>❌ API 连接错误: ${error.message}</p>`;
+                    if (error.message.includes('CORS')) {
+                        html += '<p>👉 CORS 错误，需要等待 Railway 后端部署完成</p>';
+                        issues.push('CORS 错误');
+                    }
+                    diagnosticData.apiOK = false;
+                    html += '</div>';
+                }
+            }
+
+            // 总结
+            html += '<div class="step ' + (issues.length === 0 ? 'success' : 'error') + '">';
+            if (issues.length === 0) {
+                html += '<h3>🎉 恭喜！没有发现问题</h3>';
+                html += '<p>请点击"验证修复"确认管理员功能是否可用</p>';
+            } else {
+                html += '<h3>⚠️ 发现以下问题：</h3>';
+                html += '<ul>';
+                issues.forEach(issue => {
+                    html += `<li>${issue}</li>`;
+                });
+                html += '</ul>';
+                html += '<p>请点击"自动修复"按钮</p>';
+            }
+            html += '</div>';
+
+            resultDiv.innerHTML = html;
+        }
+
+        async function fixIssues() {
+            const resultDiv = document.getElementById('fixResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>🔧 修复中...</p>';
+
+            let html = '<h3>修复操作：</h3>';
+
+            // 检查是否需要修复
+            if (diagnosticData.apiOK && diagnosticData.localStorageOK) {
+                resultDiv.innerHTML = '<div class="step success"><p>✅ 无需修复，一切正常！</p></div>';
+                return;
+            }
+
+            // 修复 1: 清除缓存
+            html += '<div class="step">';
+            html += '<p>🗑️ 清除本地缓存...</p>';
+            localStorage.clear();
+            sessionStorage.clear();
+            html += '<p>✅ 缓存已清除</p>';
+            html += '</div>';
+
+            // 修复 2: 提示重新登录
+            html += '<div class="step warning">';
+            html += '<h4>⚠️ 需要重新登录</h4>';
+            html += '<p>缓存已清除，请按以下步骤操作：</p>';
+            html += '<ol style="margin-left: 20px; margin-top: 10px;">';
+            html += '<li>点击下方"跳转到登录页"按钮</li>';
+            html += '<li>使用你的邮箱和密码重新登录</li>';
+            html += '<li>登录后返回此页面，点击"验证修复"</li>';
+            html += '</ol>';
+            html += `<button onclick="window.location.href='${FRONTEND_URL}'" style="margin-top: 15px;">
+                        🔐 跳转到登录页
+                     </button>`;
+            html += '</div>';
+
+            resultDiv.innerHTML = html;
+        }
+
+        async function verifyFix() {
+            const resultDiv = document.getElementById('verifyResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>✅ 验证中...</p>';
+
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            const token = localStorage.getItem('token');
+
+            let html = '<h3>验证结果：</h3>';
+            const finalResultDiv = document.getElementById('finalResult');
+
+            if (!user || !token) {
+                html += '<div class="step error">';
+                html += '<p>❌ 未登录，请先登录</p>';
+                html += `<button onclick="window.location.href='${FRONTEND_URL}'">跳转到登录页</button>`;
+                html += '</div>';
+                resultDiv.innerHTML = html;
+                return;
+            }
+
+            html += '<div class="step">';
+            html += `<p>📧 登录邮箱: <strong>${user.email}</strong></p>`;
+            html += `<p>🛡️ 当前角色: <strong>${user.role}</strong></p>`;
+            html += '</div>';
+
+            if (user.role === 'admin') {
+                html += '<div class="step success">';
+                html += '<h3>🎉 成功！</h3>';
+                html += '<p>你现在是管理员了！</p>';
+                html += `<button onclick="window.location.href='${FRONTEND_URL}/app'">
+                            🚀 进入应用查看管理员功能
+                         </button>`;
+                html += '</div>';
+
+                finalResultDiv.className = 'success';
+                finalResultDiv.style.display = 'block';
+                finalResultDiv.innerHTML = `
+                    <h2>✅ 修复完成！</h2>
+                    <p style="margin-top: 10px;">现在去应用中，在工作空间页面应该能看到 <strong>🛡️ 系统管理</strong> 卡片了！</p>
+                `;
+            } else {
+                html += '<div class="step error">';
+                html += '<h3>❌ 仍然不是管理员</h3>';
+                html += '<p>请确保在 Supabase 中已将角色设置为 admin</p>';
+                html += '<p>设置完成后，退出登录并重新登录</p>';
+                html += '</div>';
+
+                finalResultDiv.className = 'error';
+                finalResultDiv.style.display = 'block';
+                finalResultDiv.innerHTML = `
+                    <h2>⚠️ 需要手动操作</h2>
+                    <p style="margin-top: 10px;">请使用页面底部的手动方法修复</p>
+                `;
+            }
+
+            resultDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
+

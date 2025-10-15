@@ -6,7 +6,7 @@ from models import (
     BoardList as ListModel, ListCreate, ListUpdate, ListWithCards,
     Card, CardCreate, CardUpdate, CardComment, CardCommentCreate
 )
-from database_sqlite import board_repo, list_repo, card_repo, card_comment_repo
+from database import board_repo, list_repo, card_repo, card_comment_repo
 
 router = APIRouter(
     prefix="/api",

@@ -1,6 +1,6 @@
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, status, Depends, Query
-from database_sqlite import notes_repo
+from database import notes_repo
 from auth import get_current_user
 from models import Note, NoteCreate, NoteUpdate, User
 

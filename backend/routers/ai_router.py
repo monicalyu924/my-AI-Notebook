@@ -161,7 +161,7 @@ async def process_ai_request(
 @router.post("/summarize/{note_id}")
 async def summarize_note(note_id: str, current_user: User = Depends(get_current_user)):
     """智能摘要：为笔记生成简洁摘要"""
-    from database_sqlite import notes_repo
+    from database import notes_repo
 
     note = notes_repo.get_note(note_id)
     if not note or note['user_id'] != current_user.id:
@@ -190,7 +190,7 @@ async def summarize_note(note_id: str, current_user: User = Depends(get_current_
 @router.get("/recommend")
 async def recommend_notes(current_user: User = Depends(get_current_user)):
     """内容推荐：基于标签和时间推荐相关笔记"""
-    from database_sqlite import notes_repo
+    from database import notes_repo
     from collections import Counter
 
     all_notes = notes_repo.get_notes_by_user(current_user.id)
@@ -229,7 +229,7 @@ async def recommend_notes(current_user: User = Depends(get_current_user)):
 @router.post("/auto-classify/{note_id}")
 async def auto_classify_note(note_id: str, current_user: User = Depends(get_current_user)):
     """自动分类：AI分析笔记内容并建议标签和文件夹"""
-    from database_sqlite import notes_repo, folders_repo
+    from database import notes_repo, folders_repo
 
     note = notes_repo.get_note(note_id)
     if not note or note['user_id'] != current_user.id:

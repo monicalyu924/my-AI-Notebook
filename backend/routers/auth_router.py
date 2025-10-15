@@ -1,7 +1,7 @@
 from datetime import timedelta
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import HTTPAuthorizationCredentials
-from database_sqlite import user_repo
+from database import user_repo
 from auth import authenticate_user, create_access_token, get_password_hash, get_current_user
 from models import UserCreate, UserLogin, Token, User
 from config import settings

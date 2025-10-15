@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员功能诊断</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .check-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #ddd;
+        }
+        .check-item.success {
+            background: #d1fae5;
+            border-color: #10b981;
+        }
+        .check-item.error {
+            background: #fee2e2;
+            border-color: #ef4444;
+        }
+        .check-item.warning {
+            background: #fef3c7;
+            border-color: #f59e0b;
+        }
+        .code {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        button {
+            padding: 12px 24px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background: #4338ca;
+        }
+        .info {
+            background: #eff6ff;
+            border: 1px solid #3b82f6;
+            color: #1e40af;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 管理员功能诊断工具</h1>
+        
+        <div class="info">
+            📌 此工具帮助你诊断为什么看不到管理员功能
+        </div>
+
+        <button onclick="runDiagnostic()">🚀 开始诊断</button>
+        <button onclick="clearCache()">🗑️ 清除缓存并重新登录</button>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function runDiagnostic() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>诊断结果</h2>';
+
+            // 检查 1: localStorage 中的用户信息
+            const userStr = localStorage.getItem('user');
+            const user = userStr ? JSON.parse(userStr) : null;
+
+            if (user) {
+                results.innerHTML += `
+                    <div class="check-item ${user.role === 'admin' ? 'success' : 'error'}">
+                        <strong>✓ 检查 1: localStorage 用户信息</strong>
+                        <div class="code">
+邮箱: ${user.email}
+角色: ${user.role}
+ID: ${user.id}
+                        </div>
+                        ${user.role === 'admin' 
+                            ? '<p>✅ 角色正确，你是管理员！</p>' 
+                            : '<p>❌ 角色错误：当前是 "' + user.role + '"，需要是 "admin"<br>👉 请重新登录或检查 Supabase 数据库</p>'
+                        }
+                    </div>
+                `;
+            } else {
+                results.innerHTML += `
+                    <div class="check-item error">
+                        <strong>❌ 检查 1: 未登录</strong>
+                        <p>未找到用户信息，请先登录</p>
+                    </div>
+                `;
+            }
+
+            // 检查 2: Token
+            const token = localStorage.getItem('token');
+            results.innerHTML += `
+                <div class="check-item ${token ? 'success' : 'error'}">
+                    <strong>${token ? '✓' : '❌'} 检查 2: 认证 Token</strong>
+                    <p>${token ? '✅ Token 存在' : '❌ Token 不存在，需要重新登录'}</p>
+                    ${token ? '<div class="code">' + token.substring(0, 50) + '...</div>' : ''}
+                </div>
+            `;
+
+            // 检查 3: API 连接
+            results.innerHTML += `
+                <div class="check-item warning">
+                    <strong>⏳ 检查 3: API 连接测试</strong>
+                    <p>正在测试...</p>
+                </div>
+            `;
+
+            testAPI(user, token, results);
+
+            // 检查 4: 前端版本
+            checkFrontendVersion(results);
+        }
+
+        async function testAPI(user, token, results) {
+            if (!token) {
+                return;
+            }
+
+            try {
+                const response = await fetch('https://my-ai-notebook-production.up.railway.app/api/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                const apiCheckHtml = `
+                    <div class="check-item ${response.ok && data.role === 'admin' ? 'success' : 'error'}">
+                        <strong>${response.ok ? '✓' : '❌'} 检查 3: API 连接测试</strong>
+                        ${response.ok ? `
+                            <div class="code">
+API 返回角色: ${data.role}
+API 返回邮箱: ${data.email}
+                            </div>
+                            <p>${data.role === 'admin' 
+                                ? '✅ API 确认你是管理员！' 
+                                : '❌ API 显示你不是管理员，请检查 Supabase 数据库设置'
+                            }</p>
+                        ` : `
+                            <p>❌ API 连接失败: ${data.detail || '未知错误'}</p>
+                        `}
+                    </div>
+                `;
+                
+                // 更新检查3的结果
+                const checks = results.querySelectorAll('.check-item');
+                checks[2].outerHTML = apiCheckHtml;
+
+                // 如果 localStorage 和 API 不一致
+                if (user && data.role !== user.role) {
+                    results.innerHTML += `
+                        <div class="check-item error">
+                            <strong>⚠️ 数据不一致</strong>
+                            <p>localStorage 中角色是 "${user.role}"<br>
+                            但 API 返回角色是 "${data.role}"</p>
+                            <p><strong>👉 解决方案：清除缓存并重新登录</strong></p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                const checks = results.querySelectorAll('.check-item');
+                checks[2].outerHTML = `
+                    <div class="check-item error">
+                        <strong>❌ 检查 3: API 连接失败</strong>
+                        <p>错误: ${error.message}</p>
+                        <p>后端 URL: https://my-ai-notebook-production.up.railway.app</p>
+                    </div>
+                `;
+            }
+        }
+
+        function checkFrontendVersion(results) {
+            // 检查前端是否有 AdminDashboard
+            const hasAdminDashboard = !!window.AdminDashboard || 
+                                     document.querySelector('[data-component="admin-dashboard"]');
+            
+            results.innerHTML += `
+                <div class="check-item ${hasAdminDashboard ? 'success' : 'warning'}">
+                    <strong>📦 检查 4: 前端代码版本</strong>
+                    <p>${hasAdminDashboard 
+                        ? '✅ 前端包含管理员组件' 
+                        : '⚠️ 无法确认管理员组件是否存在（这是正常的）'
+                    }</p>
+                    <p>最后更新: ${document.lastModified}</p>
+                </div>
+            `;
+
+            // 总结
+            results.innerHTML += `
+                <div class="info" style="margin-top: 30px;">
+                    <h3>💡 常见解决方案</h3>
+                    <ol>
+                        <li><strong>重新登录</strong>（最常见）- 点击上方"清除缓存并重新登录"按钮</li>
+                        <li><strong>检查 Supabase</strong> - 确认数据库中 role 字段确实是 "admin"</li>
+                        <li><strong>等待部署</strong> - 确认 Vercel 最新部署已完成</li>
+                        <li><strong>强制刷新</strong> - Cmd+Shift+R (Mac) 或 Ctrl+Shift+R (Windows)</li>
+                    </ol>
+                </div>
+            `;
+        }
+
+        function clearCache() {
+            if (confirm('这将清除所有本地数据并跳转到登录页面，确定吗？')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                alert('缓存已清除！现在将跳转到登录页面...');
+                window.location.href = 'https://ai-notebook-production.vercel.app';
+            }
+        }
+    </script>
+</body>
+</html>
+

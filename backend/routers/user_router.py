@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 import re
-from database_sqlite import user_repo
+from database import user_repo
 from auth import get_current_user
 from models import User, UserUpdate
 

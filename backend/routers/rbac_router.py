@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from auth import get_current_user, require_role, require_permission
 from models import User
-from database_sqlite import get_connection
+from database import get_connection
 from middleware import rbac_checker
 import uuid
 

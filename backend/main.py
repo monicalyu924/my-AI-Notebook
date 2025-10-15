@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth_router, notes_router, ai_router, user_router, todos_router, folders_router, chat_router, versions_router, projects_router, admin_router, tags_router, share_router, export_router, rbac_router
-from database_sqlite import init_database
+from database import init_database
 from middleware import RBACMiddleware, PerformanceMiddleware
 
 app = FastAPI(

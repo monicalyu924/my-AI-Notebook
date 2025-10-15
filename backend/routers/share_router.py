@@ -38,7 +38,7 @@ async def create_share_link(
     需要用户登录并拥有该笔记
     """
     # 验证笔记所有权
-    from database_sqlite import notes_repo
+    from database import notes_repo
     note = notes_repo.get_note(note_id)
 
     if not note:
@@ -114,7 +114,7 @@ async def get_shared_note(
     share['view_count'] += 1
 
     # 获取笔记内容
-    from database_sqlite import notes_repo
+    from database import notes_repo
     note = notes_repo.get_note(share['note_id'])
 
     if not note:

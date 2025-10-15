@@ -334,7 +334,7 @@ class RBACChecker:
         获取用户的所有权限
         包括通过角色获得的权限和直接授予的权限
         """
-        from database_sqlite import get_connection
+        from database import get_connection
 
         cache_key = self._get_cache_key(user_id)
 
@@ -386,7 +386,7 @@ class RBACChecker:
 
     def get_user_roles(self, user_id: str) -> List[dict]:
         """获取用户的所有角色"""
-        from database_sqlite import get_connection
+        from database import get_connection
 
         conn = get_connection()
         cursor = conn.cursor()

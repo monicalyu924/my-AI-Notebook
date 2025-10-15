@@ -1,6 +1,6 @@
 from typing import List
 from fastapi import APIRouter, HTTPException, status, Depends
-from database_sqlite import user_repo, notes_repo
+from database import user_repo, notes_repo
 from auth import get_current_admin_user, require_admin
 from models import User, UserListResponse, AdminUserUpdate, SystemStats
 
