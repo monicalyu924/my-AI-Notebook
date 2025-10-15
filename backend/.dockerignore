@@ -1,0 +1,70 @@
+# Python缓存和编译文件
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 虚拟环境
+venv/
+env/
+ENV/
+.venv
+
+# 环境配置文件（包含敏感信息）
+.env
+.env.local
+.env.production
+*.env
+
+# 数据库文件
+*.sqlite
+*.sqlite3
+*.db
+notebook.db
+
+# 日志文件
+*.log
+logs/
+
+# 测试文件
+tests/
+test_*.py
+*_test.py
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 文档文件
+*.md
+docs/
+MIGRATION_GUIDE.md
+RBAC_GUIDE.md
+SUPABASE_MIGRATION_SUMMARY.md
+
+# 备份文件
+backups/
+*.backup
+*.bak
+
+# IDE和编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git文件
+.git/
+.gitignore
+.gitattributes
+
+# macOS文件
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# 其他
+*.tmp
+temp/
+tmp/
