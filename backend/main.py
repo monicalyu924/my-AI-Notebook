@@ -20,13 +20,16 @@ app.add_middleware(PerformanceMiddleware, slow_request_threshold=1.0)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        # 开发环境
         "http://localhost:3000",
         "http://localhost:5173",
         "http://localhost:5174",
         "http://localhost:5175",
         "http://localhost:5176",
         "null",
-        # Vercel 生产环境域名 (将在部署后更新具体域名)
+        # Vercel 生产环境 - 精确域名（必须明确指定，通配符不完全支持）
+        "https://ai-notebook-production.vercel.app",
+        # 通配符作为备用（某些情况下可能不生效）
         "https://*.vercel.app",
         # 其他可能的生产域名
         "https://*.ai-notebook.app"
