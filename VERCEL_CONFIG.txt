@@ -1,0 +1,75 @@
+# Vercel 前端部署配置
+# 用于在Vercel控制台中设置环境变量
+
+================================
+环境变量 (Environment Variables)
+================================
+
+复制以下内容到Vercel的Environment Variables页面：
+
+Key: VITE_API_BASE_URL
+Value: https://ai-notebook-backend-production.up.railway.app
+
+Key: VITE_API_TIMEOUT
+Value: 30000
+
+Key: VITE_API_RETRY_ATTEMPTS
+Value: 3
+
+Key: VITE_APP_NAME
+Value: AI智能记事本
+
+Key: VITE_APP_VERSION
+Value: 2.0.0
+
+Key: VITE_APP_ENV
+Value: production
+
+Key: VITE_ENABLE_DEBUG
+Value: false
+
+Key: VITE_DB_TYPE
+Value: supabase
+
+Key: VITE_DB_URL
+Value: https://lvwjycoderrjetuzqrdy.supabase.co
+
+================================
+部署设置 (Build Settings)
+================================
+
+Framework Preset: Vite
+Root Directory: frontend
+Build Command: npm run build
+Output Directory: dist
+Install Command: npm install
+
+================================
+其他配置
+================================
+
+Node.js Version: 18.x (推荐)
+Enable: Automatic deployments from Git (推荐开启)
+
+================================
+部署后验证
+================================
+
+1. 访问 Vercel 分配的域名 (https://your-app.vercel.app)
+2. 测试用户注册和登录
+3. 测试笔记 CRUD 操作
+4. 测试 AI 功能 (需要 OpenRouter API Key)
+5. 检查浏览器控制台是否有 CORS 错误
+
+================================
+常见问题
+================================
+
+Q: 如何获取 Vercel 域名？
+A: 部署成功后，在 Vercel Dashboard 中查看 "Domains" 部分
+
+Q: CORS 错误怎么办？
+A: 后端已配置 *.vercel.app 通配符，应该不会有问题
+
+Q: 如何查看部署日志？
+A: 在 Vercel Dashboard 的 "Deployments" 标签中点击具体部署查看日志
