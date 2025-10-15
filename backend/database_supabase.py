@@ -409,6 +409,197 @@ def init_database():
     """初始化数据库(Supabase版本中表已通过SQL创建,此函数仅用于兼容性)"""
     pass
 
+def get_connection():
+    """获取数据库连接（为了兼容SQLite接口）"""
+    return get_supabase_client()
+
+# ===========================================
+# Repository类封装 - 与SQLite版本保持接口一致
+# ===========================================
+
+class SupabaseUserRepository:
+    """用户数据操作类 - 兼容SQLite接口"""
+    
+    def create_user(self, email: str, password_hash: str, full_name: Optional[str] = None, role: str = 'user') -> dict:
+        return create_user(email, password_hash, full_name, role)
+    
+    def get_user_by_email(self, email: str) -> Optional[dict]:
+        return get_user_by_email(email)
+    
+    def get_user_by_id(self, user_id: str) -> Optional[dict]:
+        return get_user_by_id(user_id)
+    
+    def update_user(self, user_id: str, **kwargs) -> Optional[dict]:
+        return update_user(user_id, **kwargs)
+    
+    def get_all_users(self) -> List[dict]:
+        supabase = get_supabase_client()
+        result = supabase.table('users').select('*').order('created_at', desc=True).execute()
+        return result.data
+    
+    def get_user_stats(self, user_id: str) -> dict:
+        supabase = get_supabase_client()
+        stats = {'notes_count': 0, 'todos_count': 0}
+        
+        # 统计笔记数
+        result = supabase.table('notes').select('id', count='exact').eq('user_id', user_id).execute()
+        stats['notes_count'] = result.count or 0
+        
+        # 统计待办数
+        try:
+            result = supabase.table('todos').select('id', count='exact').eq('user_id', user_id).execute()
+            stats['todos_count'] = result.count or 0
+        except:
+            pass
+        
+        return stats
+    
+    def delete_user(self, user_id: str) -> bool:
+        return delete_user(user_id)
+
+
+class SupabaseNotesRepository:
+    """笔记数据操作类 - 兼容SQLite接口"""
+    
+    def create_note(self, title: str, content: str, tags: List[str], user_id: str) -> dict:
+        return create_note(title, content, user_id, tags)
+    
+    def get_notes_by_user(self, user_id: str) -> List[dict]:
+        return get_notes_by_user(user_id)
+    
+    def get_note_by_id(self, note_id: str, user_id: str) -> Optional[dict]:
+        note = get_note_by_id(note_id)
+        if note and note.get('user_id') == user_id:
+            return note
+        return None
+    
+    def update_note(self, note_id: str, user_id: str, **kwargs) -> Optional[dict]:
+        # 验证所有权
+        note = self.get_note_by_id(note_id, user_id)
+        if not note:
+            return None
+        return update_note(note_id, **kwargs)
+    
+    def delete_note(self, note_id: str, user_id: str) -> bool:
+        # 验证所有权
+        note = self.get_note_by_id(note_id, user_id)
+        if not note:
+            return False
+        return delete_note(note_id)
+    
+    def search_notes(self, user_id: str, query: str, limit: int = 50) -> List[dict]:
+        return search_notes(user_id, query)
+
+
+class SupabaseBoardRepository:
+    """看板数据操作类 - 兼容SQLite接口"""
+    
+    def create_board(self, name: str, description: Optional[str], color: str, user_id: str) -> dict:
+        return create_board(name, user_id, description, color)
+    
+    def get_boards_by_user(self, user_id: str) -> List[dict]:
+        return get_boards_by_user(user_id)
+    
+    def get_board_by_id(self, board_id: str, user_id: str) -> Optional[dict]:
+        board = get_board_by_id(board_id)
+        if board and board.get('user_id') == user_id:
+            return board
+        return None
+    
+    def get_board_with_data(self, board_id: str, user_id: str) -> Optional[dict]:
+        board = self.get_board_by_id(board_id, user_id)
+        if not board:
+            return None
+        
+        # 获取所有列表和卡片
+        lists = get_lists_by_board(board_id)
+        for list_item in lists:
+            list_item['cards'] = get_cards_by_list(list_item['id'])
+        
+        board['lists'] = lists
+        return board
+    
+    def update_board(self, board_id: str, user_id: str, **kwargs) -> Optional[dict]:
+        # 验证所有权
+        board = self.get_board_by_id(board_id, user_id)
+        if not board:
+            return None
+        return update_board(board_id, **kwargs)
+    
+    def delete_board(self, board_id: str, user_id: str) -> bool:
+        # 验证所有权
+        board = self.get_board_by_id(board_id, user_id)
+        if not board:
+            return False
+        return delete_board(board_id)
+
+
+class SupabaseListRepository:
+    """列表数据操作类 - 兼容SQLite接口"""
+    
+    def create_list(self, title: str, position: int, board_id: str) -> dict:
+        return create_list(title, board_id, position)
+    
+    def update_list(self, list_id: str, **kwargs) -> Optional[dict]:
+        result = update_list(list_id, **kwargs)
+        return result
+    
+    def get_list_by_id(self, list_id: str) -> Optional[dict]:
+        supabase = get_supabase_client()
+        result = supabase.table('lists').select('*').eq('id', list_id).execute()
+        return result.data[0] if result.data else None
+    
+    def delete_list(self, list_id: str) -> bool:
+        return delete_list(list_id)
+
+
+class SupabaseCardRepository:
+    """卡片数据操作类 - 兼容SQLite接口"""
+    
+    def create_card(self, title: str, description: Optional[str], priority: str,
+                   due_date: Optional[str], assignee: Optional[str], tags: List[str],
+                   position: int, list_id: str) -> dict:
+        return create_card(title, list_id, description, priority, tags, position)
+    
+    def update_card(self, card_id: str, **kwargs) -> Optional[dict]:
+        return update_card(card_id, **kwargs)
+    
+    def get_card_by_id(self, card_id: str) -> Optional[dict]:
+        supabase = get_supabase_client()
+        result = supabase.table('cards').select('*').eq('id', card_id).execute()
+        return result.data[0] if result.data else None
+    
+    def delete_card(self, card_id: str) -> bool:
+        return delete_card(card_id)
+
+
+class SupabaseCardCommentRepository:
+    """卡片评论数据操作类 - 兼容SQLite接口"""
+    
+    def create_comment(self, card_id: str, content: str, user_id: str) -> dict:
+        supabase = get_supabase_client()
+        comment_data = {
+            'card_id': card_id,
+            'content': content,
+            'user_id': user_id
+        }
+        result = supabase.table('card_comments').insert(comment_data).execute()
+        return result.data[0]
+    
+    def get_comments_by_card(self, card_id: str) -> List[dict]:
+        supabase = get_supabase_client()
+        result = supabase.table('card_comments').select('*').eq('card_id', card_id).order('created_at').execute()
+        return result.data
+
+
+# 创建全局实例 - 与SQLite版本保持一致
+user_repo = SupabaseUserRepository()
+notes_repo = SupabaseNotesRepository()
+board_repo = SupabaseBoardRepository()
+list_repo = SupabaseListRepository()
+card_repo = SupabaseCardRepository()
+card_comment_repo = SupabaseCardCommentRepository()
+
 if __name__ == "__main__":
     # 测试数据库连接
     health = check_database_health()
