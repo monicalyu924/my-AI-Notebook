@@ -1,7 +1,9 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000'; // 直接硬编码正确的地址
+// 使用环境变量，生产环境使用Railway URL，开发环境回退到localhost
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 console.log('API_BASE_URL设置为:', API_BASE_URL);
+console.log('环境变量VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
 
 // Create axios instance
 const api = axios.create({
