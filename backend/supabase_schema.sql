@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
     full_name VARCHAR(255),
     role VARCHAR(50) DEFAULT 'user' NOT NULL,
     openrouter_api_key TEXT,
+    google_api_key TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

@@ -56,7 +56,8 @@
       "Bash(railway --version)",
       "Bash(railway login:*)",
       "Bash(railway variables:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(\"/Users/monica/Documents/ai practise/记事本 9.17/scripts/check-vercel-env.sh\")"
     ],
     "deny": [],
     "ask": []

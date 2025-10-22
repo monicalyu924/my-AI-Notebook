@@ -28,6 +28,15 @@ async def update_user_profile(
                 ),
             )
         update_data["openrouter_api_key"] = key
+    if user_update.google_api_key is not None:
+        google_key = (user_update.google_api_key or "").strip()
+        # Google API 密钥验证（基本格式检查）
+        if google_key and len(google_key) < 20:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="无效的 Google API 密钥。请从 Google AI Studio 获取有效密钥。"
+            )
+        update_data["google_api_key"] = google_key
     
     if not update_data:
         return current_user
