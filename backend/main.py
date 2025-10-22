@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth_router, notes_router, ai_router, user_router, todos_router, folders_router, chat_router, versions_router, projects_router, admin_router, tags_router, share_router, export_router, rbac_router
+from routers import auth_router, notes_router, ai_router, user_router, todos_router, folders_router, chat_router, versions_router, projects_router, admin_router, tags_router, share_router, export_router, rbac_router, nano_banana_router
 from database import init_database
 from middleware import RBACMiddleware, PerformanceMiddleware
 
@@ -54,6 +54,7 @@ app.include_router(tags_router.router)  # 标签管理路由
 app.include_router(share_router.router)  # 分享和评论路由
 app.include_router(export_router.router)  # 导出功能路由
 app.include_router(rbac_router.router)  # RBAC权限管理路由
+app.include_router(nano_banana_router.router)  # Nano Banana图像生成路由
 
 @app.get("/")
 async def root():

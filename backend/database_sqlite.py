@@ -32,6 +32,13 @@ def init_database():
     except sqlite3.OperationalError:
         # 列已存在，忽略错误
         pass
+
+    # 为已存在的users表添加google_api_key列（如果不存在）
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN google_api_key TEXT")
+    except sqlite3.OperationalError:
+        # 列已存在，忽略错误
+        pass
     
     # 创建笔记表
     cursor.execute('''
@@ -449,7 +456,7 @@ class SQLiteUserRepository:
         values = []
         
         for field, value in kwargs.items():
-            if field in ['full_name', 'openrouter_api_key', 'role']:
+            if field in ['full_name', 'openrouter_api_key', 'google_api_key', 'role']:
                 update_fields.append(f'{field} = ?')
                 values.append(value)
         

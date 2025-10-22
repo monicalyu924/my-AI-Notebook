@@ -12,6 +12,7 @@ const SettingsPage = () => {
   const [formData, setFormData] = useState({
     full_name: user?.full_name || '',
     openrouter_api_key: user?.openrouter_api_key || '',
+    google_api_key: user?.google_api_key || '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -185,6 +186,48 @@ const SettingsPage = () => {
                       </div>
                     </div>
                   </div>
+
+                {/* Google API Key */}
+                <div className="mt-6">
+                  <Input
+                    label="Google API Key (用于 Nano Banana 图像生成)"
+                    type="password"
+                    name="google_api_key"
+                    value={formData.google_api_key}
+                    onChange={handleChange}
+                    placeholder="输入你的 Google API 密钥"
+                    leftIcon={<Key className="h-5 w-5" />}
+                  />
+
+                  <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="flex items-start space-x-2">
+                      <div className="text-purple-600 text-lg">🎨</div>
+                      <div className="text-sm text-purple-800">
+                        <p className="font-medium mb-2">配置 Nano Banana 图像生成</p>
+                        <ol className="space-y-1 list-decimal list-inside">
+                          <li>
+                            访问{' '}
+                            <a
+                              href="https://aistudio.google.com/app/apikey"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-medium underline hover:no-underline"
+                            >
+                              Google AI Studio
+                            </a>
+                            {' '}创建 API 密钥
+                          </li>
+                          <li>点击"Create API Key"生成新密钥</li>
+                          <li>将密钥粘贴到上方输入框中</li>
+                          <li>保存后即可在 <a href="/image-generator" className="underline">图像生成器</a> 中使用</li>
+                        </ol>
+                        <p className="mt-2 text-xs">
+                          💡 Nano Banana 使用 Google Gemini 2.5 Flash Image Preview 模型，支持文本生成图像和图像编辑功能。
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 </div>
               </div>
 

@@ -25,12 +25,14 @@ class User(BaseModel):
     full_name: Optional[str] = None
     role: UserRole
     openrouter_api_key: Optional[str] = None
+    google_api_key: Optional[str] = None  # 用于Nano Banana/Gemini
     created_at: datetime
     updated_at: datetime
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     openrouter_api_key: Optional[str] = None
+    google_api_key: Optional[str] = None  # 用于Nano Banana/Gemini
     role: Optional[UserRole] = None  # 只有管理员可以修改角色
 
 # Admin models

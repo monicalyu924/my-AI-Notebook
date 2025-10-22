@@ -22,6 +22,7 @@ const SettingsPage = lazy(() => import('./components/SettingsPage'));
 const CommandPalette = lazy(() => import('./components/common/CommandPalette'));
 const TestSparkles = lazy(() => import('./components/TestSparkles'));
 const ProductivityDashboard = lazy(() => import('./components/dashboard/ProductivityDashboard'));
+const ImageGeneratorPage = lazy(() => import('./pages/ImageGeneratorPage'));
 
 function App() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -102,6 +103,16 @@ function App() {
                   <ErrorBoundary>
                     <SuspenseWrapper>
                       <ProductivityDashboard />
+                    </SuspenseWrapper>
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/image-generator" element={
+                <ProtectedRoute>
+                  <ErrorBoundary>
+                    <SuspenseWrapper>
+                      <ImageGeneratorPage />
                     </SuspenseWrapper>
                   </ErrorBoundary>
                 </ProtectedRoute>

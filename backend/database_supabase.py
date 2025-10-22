@@ -35,7 +35,8 @@ def get_supabase_client() -> Client:
 # ===========================================
 
 def create_user(email: str, password_hash: str, full_name: Optional[str] = None,
-                role: str = 'user', openrouter_api_key: Optional[str] = None) -> Dict[str, Any]:
+                role: str = 'user', openrouter_api_key: Optional[str] = None,
+                google_api_key: Optional[str] = None) -> Dict[str, Any]:
     """创建新用户"""
     supabase = get_supabase_client()
 
@@ -44,7 +45,8 @@ def create_user(email: str, password_hash: str, full_name: Optional[str] = None,
         'password_hash': password_hash,
         'full_name': full_name,
         'role': role,
-        'openrouter_api_key': openrouter_api_key
+        'openrouter_api_key': openrouter_api_key,
+        'google_api_key': google_api_key
     }
 
     result = supabase.table('users').insert(user_data).execute()
