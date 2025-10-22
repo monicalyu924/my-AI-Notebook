@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from auth import get_current_user
 from models import User
 from pydantic import BaseModel
-from typing import Optional, List, Literal
+from typing import Optional, List
 
 router = APIRouter(prefix="/api/nano-banana", tags=["nano-banana"])
 
@@ -15,7 +15,6 @@ class ImageGenerateRequest(BaseModel):
     width: Optional[int] = 1024
     height: Optional[int] = 1024
     num_images: Optional[int] = 1  # 1-4张图片
-    provider: Literal["google", "openrouter"] = "openrouter"  # 默认使用 OpenRouter
 
 class ImageEditRequest(BaseModel):
     """图像编辑请求"""
@@ -24,84 +23,12 @@ class ImageEditRequest(BaseModel):
     prompt: str  # 编辑指令
     mask_url: Optional[str] = None  # 可选的蒙版图片URL
     mask_base64: Optional[str] = None  # 可选的蒙版图片Base64
-    provider: Literal["google", "openrouter"] = "openrouter"  # 默认使用 OpenRouter
 
 class ImageResponse(BaseModel):
     """图像生成/编辑响应"""
     images: List[str]  # Base64编码的图片列表
     prompt: str
     model: str = "gemini-2.5-flash-image-preview"
-
-
-async def call_openrouter_api(
-    api_key: str,
-    prompt: str,
-    num_images: int = 1,
-    timeout: float = 120.0
-) -> dict:
-    """
-    通过OpenRouter调用Nano Banana图像生成模型
-
-    Args:
-        api_key: OpenRouter API密钥
-        prompt: 图像描述文本
-        num_images: 生成图像数量
-        timeout: 超时时间（秒）
-
-    Returns:
-        API响应数据
-    """
-    url = "https://openrouter.ai/api/v1/chat/completions"
-    
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://ai-notebook-production.vercel.app",  # 可选，用于分析
-        "X-Title": "AI Notebook"  # 可选
-    }
-
-    # OpenRouter 使用标准的 Chat Completions API 格式
-    data = {
-        "model": "google/gemini-2.5-flash-image-preview:free",  # 使用免费版本
-        "messages": [
-            {
-                "role": "user",
-                "content": f"Generate {num_images} image(s) based on this description: {prompt}"
-            }
-        ],
-        "temperature": 0.7,
-        "max_tokens": 2048
-    }
-
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(
-                url,
-                headers=headers,
-                json=data,
-                timeout=timeout
-            )
-            response.raise_for_status()
-            return response.json()
-
-        except httpx.RequestError as e:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail=f"OpenRouter API请求失败: {str(e)}"
-            )
-        except httpx.HTTPStatusError as e:
-            error_detail = e.response.text
-            try:
-                error_json = e.response.json()
-                if "error" in error_json:
-                    error_detail = error_json["error"].get("message", error_detail)
-            except:
-                pass
-
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=f"OpenRouter API错误: {error_detail}"
-            )
 
 
 async def call_gemini_api(
@@ -171,8 +98,15 @@ async def generate_image(
     """
     文本生成图像 (Text-to-Image)
 
-    支持通过 OpenRouter 或 Google API 使用 Gemini 2.5 Flash Image Preview 模型生成图像
+    使用Google Gemini 2.5 Flash Image Preview模型根据文本描述生成图像
     """
+    # 检查API密钥
+    if not hasattr(current_user, 'google_api_key') or not current_user.google_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="未配置Google API密钥。请在设置中添加Google API密钥。"
+        )
+
     # 验证参数
     if request.num_images < 1 or request.num_images > 4:
         raise HTTPException(
@@ -180,88 +114,50 @@ async def generate_image(
             detail="num_images必须在1-4之间"
         )
 
-    # 构建提示词
+    # 构建Gemini API请求
     prompt_text = request.prompt
     if request.negative_prompt:
         prompt_text += f"\n\nNegative prompt (避免生成): {request.negative_prompt}"
 
-    images = []
-
-    # 根据 provider 选择 API
-    if request.provider == "openrouter":
-        # 使用 OpenRouter API
-        if not hasattr(current_user, 'openrouter_api_key') or not current_user.openrouter_api_key:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="未配置 OpenRouter API 密钥。请在设置中添加 OpenRouter API 密钥。"
-            )
-
-        result = await call_openrouter_api(
-            current_user.openrouter_api_key,
-            prompt_text,
-            request.num_images
-        )
-
-        # 解析 OpenRouter 响应
-        # OpenRouter 可能会在响应的 message.content 中返回图像 URL 或 base64
-        if "choices" in result and len(result["choices"]) > 0:
-            content = result["choices"][0].get("message", {}).get("content", "")
-            # 这里需要根据实际返回格式解析图像
-            # 暂时假设返回的是文本描述或图像URL
-            # 实际实现可能需要调整
-            images.append(content)
-        
-        if not images:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="生成图像失败：OpenRouter API 未返回图像数据"
-            )
-
-    else:  # provider == "google"
-        # 使用 Google API 直接调用
-        if not hasattr(current_user, 'google_api_key') or not current_user.google_api_key:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="未配置 Google API 密钥。请在设置中添加 Google API 密钥。"
-            )
-
-        gemini_request = {
-            "contents": [{
-                "parts": [{
-                    "text": f"Generate an image based on this description: {prompt_text}"
-                }]
-            }],
-            "generationConfig": {
-                "temperature": 0.7,
-                "candidateCount": request.num_images,
-                "maxOutputTokens": 2048,
-            }
+    gemini_request = {
+        "contents": [{
+            "parts": [{
+                "text": f"Generate an image based on this description: {prompt_text}"
+            }]
+        }],
+        "generationConfig": {
+            "temperature": 0.7,
+            "candidateCount": request.num_images,
+            "maxOutputTokens": 2048,
         }
+    }
 
-        result = await call_gemini_api(
-            current_user.google_api_key,
-            "generateContent",
-            gemini_request
+    # 调用Gemini API
+    result = await call_gemini_api(
+        current_user.google_api_key,
+        "generateContent",
+        gemini_request
+    )
+
+    # 解析响应，提取图像
+    images = []
+    if "candidates" in result:
+        for candidate in result["candidates"]:
+            if "content" in candidate and "parts" in candidate["content"]:
+                for part in candidate["content"]["parts"]:
+                    # Gemini可能返回inlineData格式的图片
+                    if "inlineData" in part:
+                        images.append(part["inlineData"]["data"])
+
+    if not images:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="生成图像失败：API未返回图像数据"
         )
-
-        # 解析 Google API 响应
-        if "candidates" in result:
-            for candidate in result["candidates"]:
-                if "content" in candidate and "parts" in candidate["content"]:
-                    for part in candidate["content"]["parts"]:
-                        if "inlineData" in part:
-                            images.append(part["inlineData"]["data"])
-
-        if not images:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="生成图像失败：Google API 未返回图像数据"
-            )
 
     return ImageResponse(
         images=images,
-        prompt=request.prompt,
-        model=f"{request.provider}/gemini-2.5-flash-image-preview"
+        prompt=request.prompt
     )
 
 
@@ -399,10 +295,9 @@ async def get_available_models():
     return {
         "models": [
             {
-                "id": "openrouter/gemini-2.5-flash-image-preview",
-                "name": "Nano Banana (通过 OpenRouter)",
-                "provider": "openrouter",
-                "description": "通过 OpenRouter 调用 Google Gemini 2.5 Flash Image Preview，避免直接配额限制",
+                "id": "gemini-2.5-flash-image-preview",
+                "name": "Nano Banana (Gemini 2.5 Flash Image Preview)",
+                "description": "Google最新的图像生成和编辑模型，支持文本生成图像和图像编辑",
                 "capabilities": [
                     "文本生成图像 (Text-to-Image)",
                     "图像编辑 (Image-to-Image)",
@@ -410,29 +305,9 @@ async def get_available_models():
                     "保持主体一致性",
                     "物理感知渲染（阴影、反射、纹理）"
                 ],
-                "pricing": "使用 OpenRouter 定价（可能有免费配额）",
+                "pricing": "根据Google AI Studio定价",
                 "max_images_per_request": 4,
-                "supported_sizes": ["1024x1024", "512x512", "768x768"],
-                "requires_api_key": "openrouter_api_key",
-                "recommended": True
-            },
-            {
-                "id": "google/gemini-2.5-flash-image-preview",
-                "name": "Nano Banana (直接调用 Google API)",
-                "provider": "google",
-                "description": "直接调用 Google AI Studio API，需要 Google API 密钥",
-                "capabilities": [
-                    "文本生成图像 (Text-to-Image)",
-                    "图像编辑 (Image-to-Image)",
-                    "局部编辑（对象替换、背景更改）",
-                    "保持主体一致性",
-                    "物理感知渲染（阴影、反射、纹理）"
-                ],
-                "pricing": "根据 Google AI Studio 定价",
-                "max_images_per_request": 4,
-                "supported_sizes": ["1024x1024", "512x512", "768x768"],
-                "requires_api_key": "google_api_key",
-                "recommended": False
+                "supported_sizes": ["1024x1024", "512x512", "768x768"]
             }
         ]
     }
