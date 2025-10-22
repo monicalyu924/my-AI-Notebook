@@ -14,6 +14,9 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { chatAPI } from '../../utils/api';
 
+// 使用环境变量配置API基础URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
 const ChatPage = ({ onViewChange }) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
@@ -136,7 +139,7 @@ const ChatPage = ({ onViewChange }) => {
       // 如果是图像生成模型
       if (isImageModel && selectedModel === 'nano-banana') {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:8000/api/nano-banana/generate', {
+        const response = await fetch(`${API_BASE_URL}/api/nano-banana/generate`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

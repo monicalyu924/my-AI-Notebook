@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Image as ImageIcon, Edit3, Download, Loader } from 'lucide-react';
-import { useToast } from '../contexts/ToastContext';
+import { useToast } from '../components/common/Toast';
+
+// 使用环境变量配置API基础URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 const ImageGeneratorPage = () => {
   const [mode, setMode] = useState('generate'); // 'generate' or 'edit'
@@ -23,7 +26,7 @@ const ImageGeneratorPage = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/nano-banana/generate', {
+      const response = await fetch(`${API_BASE_URL}/api/nano-banana/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -67,7 +70,7 @@ const ImageGeneratorPage = () => {
       // 从data URL中提取base64数据
       const base64Data = selectedImage.split(',')[1];
 
-      const response = await fetch('http://localhost:8000/api/nano-banana/edit', {
+      const response = await fetch(`${API_BASE_URL}/api/nano-banana/edit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
